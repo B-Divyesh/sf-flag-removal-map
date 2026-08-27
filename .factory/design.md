@@ -40,7 +40,7 @@ Only the removal route draws on entry (600 ms), result markers settle once (220 
 
 ## Asset plan and provenance
 
-- `site/public/topographic-route.webp`: original raster hero illustration generated for this product with `/opt/fleet/lib/gen-image.sh` (`factory-image` deployment), then converted to WebP and kept below 300 KB. Prompt: “Editorial topographic survey map of an abstract software repository landscape, fine ink contour lines on warm ivory paper, three small square evidence markers connected by one vermilion route, subtle coordinate ticks and field-note texture, no words, no letters, no logos, no UI screenshot, flat printmaking style, wide 3:2 composition, high negative space, restrained forest green charcoal and vermilion palette.” License/provenance: generated original, 2026-08-27; no third-party source material.
+- `site/public/topographic-route.webp` and its `-600` responsive derivative: original raster hero illustration generated for this product with `/opt/fleet/lib/gen-image.sh` (`factory-image` deployment), then converted to WebP and kept below 300 KB. Prompt: “Editorial topographic survey map of an abstract software repository landscape, fine ink contour lines on warm ivory paper, three small square evidence markers connected by one vermilion route, subtle coordinate ticks and field-note texture, no words, no letters, no logos, no UI screenshot, flat printmaking style, wide 3:2 composition, high negative space, restrained forest green charcoal and vermilion palette.” License/provenance: generated original, 2026-08-27; no third-party source material.
 - Icons and contour overlays are hand-authored CSS/SVG primitives created in-repository and contain no third-party assets.
 
 ## Responsive intent

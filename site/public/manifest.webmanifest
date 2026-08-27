@@ -1,0 +1,9 @@
+{
+  "name": "Flag Removal Map",
+  "short_name": "Flag Map",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f0e6",
+  "theme_color": "#18231e",
+  "icons": [{ "src": "/mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

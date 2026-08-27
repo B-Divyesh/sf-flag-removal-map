@@ -1,0 +1,15 @@
+{
+  "name": "flag-removal-map-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "vite --config site/vite.config.ts",
+    "test": "cargo test --all-targets && npm run test:site",
+    "test:site": "node --test site/tests/*.test.mjs",
+    "build": "cargo build --release && npm run build:site",
+    "build:site": "vite build --config site/vite.config.ts"
+  },
+  "devDependencies": {
+    "vite": "^7.1.3"
+  }
+}
