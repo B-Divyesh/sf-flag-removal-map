@@ -1,4 +1,14 @@
-# Flag Removal Map — build handoff
+# Flag Removal Map — verification handoff
+
+> **Verification status: FAIL (release blocking).** Independent QA of candidate `39451606e861400dffb41762e910e4f823180aaa` and `https://flag-removal-map.sociobot.in/` found a serious WCAG AA color-contrast failure after the interactive evidence result renders. The live deployment byte-matches the candidate, so this is not a deployment-only mismatch.
+
+Verification evidence, exact commands, all passing checks, response headers, package-consumer test, and defects by severity are in [verification.md](verification.md). Product source was not changed during verification.
+
+Required retest: correct the interactive result `h4` color in both themes (light 1.67:1; dark 1.56:1; required 4.5:1), then run Axe after `remove`, `keep`, `review`, and validation-error states. Also configure immutable caching for fingerprinted static assets; live assets currently use `Cache-Control: public, must-revalidate, max-age=30`.
+
+---
+
+## Superseded builder handoff
 
 Work order: `flag-removal-map-build-1`
 
