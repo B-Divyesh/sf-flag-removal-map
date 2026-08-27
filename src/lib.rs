@@ -243,24 +243,34 @@ fn parse_provider_export(text: &str) -> Result<(String, Vec<ProviderFlag>), Stri
         .unwrap_or("unknown")
         .to_string();
 
-    let entries = if let Some(array) = root.as_array() {
-        array.iter().collect::<Vec<_>>()
+    let entries: Vec<(Option<&str>, &Value)> = if let Some(array) = root.as_array() {
+        array.iter().map(|entry| (None, entry)).collect()
     } else {
-        ["flags", "items", "features"]
+        let collection = ["flags", "items", "features", "feature_states", "f"]
             .iter()
-            .find_map(|key| root.get(key).and_then(Value::as_array))
-            .map(|array| array.iter().collect::<Vec<_>>())
-            .ok_or_else(|| {
-                "flag export needs a JSON array or a flags/items/features array".to_string()
-            })?
+            .find_map(|key| root.get(key));
+        match collection {
+            Some(Value::Array(array)) => array.iter().map(|entry| (None, entry)).collect(),
+            Some(Value::Object(object)) => object
+                .iter()
+                .map(|(key, entry)| (Some(key.as_str()), entry))
+                .collect(),
+            _ => {
+                return Err(
+                    "flag export needs a JSON array or a flags/items/features/feature_states collection"
+                        .to_string(),
+                )
+            }
+        }
     };
 
     let mut flags = Vec::new();
     let mut seen = HashSet::new();
-    for entry in entries {
+    for (map_key, entry) in entries {
         let nested = entry.get("feature").filter(|value| value.is_object());
         let key = string_field(entry, &["key", "name", "flagKey"])
             .or_else(|| nested.and_then(|value| string_field(value, &["key", "name"])))
+            .or(map_key)
             .map(str::trim)
             .filter(|value| !value.is_empty());
         let Some(key) = key else { continue };
@@ -803,6 +813,20 @@ mod tests {
         assert_eq!(flags.len(), 2);
         assert_eq!(flags[0].status.as_deref(), Some("archived"));
         assert_eq!(flags[1].key, "beta");
+    }
+
+    #[test]
+    fn parses_flagsmith_and_keyed_config_shapes() {
+        let (_, flagsmith) = parse_provider_export(
+            r#"{"feature_states":[{"feature":{"name":"checkout-v2"},"enabled":false}]}"#,
+        )
+        .unwrap();
+        assert_eq!(flagsmith[0].key, "checkout-v2");
+        assert_eq!(flagsmith[0].enabled, Some(false));
+
+        let (_, keyed) = parse_provider_export(r#"{"f":{"search-v3":{"t":0,"v":"abc"}}}"#).unwrap();
+        assert_eq!(keyed[0].key, "search-v3");
+        assert_eq!(keyed[0].enabled, None);
     }
 
     #[test]
