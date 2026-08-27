@@ -1,8 +1,15 @@
-const CACHE = "flag-removal-map-v1";
+const CACHE = "flag-removal-map-v2";
 const SHELL = ["/", "/index.html", "/privacy/", "/terms/", "/topographic-route.webp", "/topographic-route-600.webp", "/mark.svg", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    await cache.addAll(SHELL);
+    const response = await fetch("/index.html");
+    const html = await response.clone().text();
+    const assets = [...html.matchAll(/(?:src|href)="(\/assets\/[^\"]+)"/g)].map((match) => match[1]);
+    await cache.addAll(assets);
+  })());
   self.skipWaiting();
 });
 
@@ -20,6 +27,6 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE).then((cache) => cache.put(event.request, copy));
       }
       return response;
-    }).catch(() => caches.match("/index.html")))
+    }).catch(() => event.request.mode === "navigate" ? caches.match("/index.html") : Response.error()))
   );
 });
