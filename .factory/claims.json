@@ -13,7 +13,7 @@
   {"id":"provider-shapes","claim":"The CLI accepts flags, items, and features JSON collections.","where":"README","test":"cargo test parses_common_provider_shapes","sandbox":"unit JSON fixtures"},
   {"id":"reference-kinds","claim":"The CLI labels exact matches by reference type.","where":"README","test":"cargo test analysis_finds_code_config_test_and_docs","sandbox":"temporary code/config/test/documentation fixture"},
   {"id":"repository-read-only","claim":"The CLI does not edit repositories.","where":"landing, README","test":"cargo test --test cli documented_json_workflow_runs_end_to_end","sandbox":"temporary repository fixture remains input-only"},
-  {"id":"license-file","claim":"The project is MIT licensed.","where":"README, footer","test":"test -f LICENSE && grep -q 'MIT License' LICENSE","sandbox":"repository source"},
+  {"id":"license-file","claim":"The project is MIT licensed.","where":"README, footer","test":"test -f LICENSE && grep -q 'Permission is hereby granted' LICENSE","sandbox":"repository source"},
   {"id":"cli-no-egress","claim":"The CLI makes no provider calls.","where":"landing, README, privacy","test":"cargo test --test cli documented_json_workflow_runs_end_to_end","sandbox":"offline local-file workflow; dependency tree has no HTTP client"},
   {"id":"source-install","claim":"Build and install the CLI from source.","where":"README, landing","test":"cargo install --path . --root /tmp/flag-removal-map-claim-install","sandbox":"clean local package install"},
   {"id":"cargo-package","claim":"The release package can be checked locally.","where":"README","test":"cargo package --allow-dirty","sandbox":"package verification"},

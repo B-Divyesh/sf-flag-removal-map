@@ -28,6 +28,8 @@ target/release/flag-removal-map demo
 
 All passed. The final build emitted 6.37 kB JavaScript (2.60 kB gzip) and 14.98 kB CSS (4.08 kB gzip). Playwright/Axe passed at 390 px and on the designed 404, including the rendered sample result; offline reload and no-egress flows are covered in the browser suite. CLI integration tests cover the temporary bundled demo, JSON workflow, and exit codes.
 
+All 25 exact commands listed in `.factory/claims.json` were then run from this final tree and passed.
+
 Visual evidence:
 
 - `.factory/evidence/home-desktop.png`
