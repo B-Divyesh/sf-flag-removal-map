@@ -27,15 +27,15 @@ test("@claim:privacy-site local assets, storage, and network policy match the pr
   assert.doesNotMatch(script, /fetch\(|XMLHttpRequest|WebSocket/); assert.match(privacy, /no accounts, analytics, advertising, cookies, or remote fonts/); assert.match(config, /default-src 'self'/);
 });
 
-test("@claim:decision-rule browser code requires a recent valid observation date for zero usage", () => {
+test("browser code requires a recent valid observation date for zero usage", () => {
   assert.match(script, /observationUtcDays/); assert.match(script, /complete && count === 0 && recentDate/); assert.match(script, /valid observation end date from the last 90 days/);
 });
 
-test("@claim:accessibility-routing every route focuses and announces its destination", () => {
+test("every route focuses and announces its destination", () => {
   assert.match(script, /h1\.focus/); assert.match(script, /route-announcement/); assert.match(script, /addEventListener\("pageshow"/); assert.match(css, /:focus-visible/); assert.match(css, /prefers-reduced-motion: reduce/); assert.match(home, /<pre tabindex="0" aria-label="Example command">/);
 });
 
-test("@claim:404-route static deployment serves the designed 404 without a home fallback", () => {
+test("static deployment serves the designed 404 without a home fallback", () => {
   const policy = JSON.parse(config); assert.equal(policy.responseOverrides["404"].rewrite, "/404.html"); assert.equal(policy.responseOverrides["404"].statusCode, 404); assert.equal(policy.navigationFallback, undefined); assert.match(notFound, /This map page does not exist/);
 });
 

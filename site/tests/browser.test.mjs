@@ -30,7 +30,7 @@ test("@claim:offline-reload controlled demo reloads and classifies offline", asy
   const browser = await chromium.launch(); const context = await browser.newContext(); const page = await context.newPage(); await page.goto(`${base}/demo/`, { waitUntil: "networkidle" }); await page.evaluate(() => navigator.serviceWorker.ready); await page.waitForFunction(() => navigator.serviceWorker.controller !== null); await context.setOffline(true); await page.reload({ waitUntil: "domcontentloaded" }); await page.getByRole("heading", { name: "Removal candidate" }).waitFor(); await context.close(); await browser.close();
 });
 
-test("@claim:404-page unknown routes keep their URL and return the designed 404", async () => {
+test("@claim:404-route unknown routes keep their URL and return the designed 404", async () => {
   const browser = await chromium.launch(); const page = await browser.newPage(); const response = await page.goto(`${base}/not-a-real-page-qa`); assert.equal(response.status(), 404); await page.getByRole("heading", { name: /does not exist/i }).waitFor(); assert.match(page.url(), /not-a-real-page-qa$/); await axe(page); await browser.close();
 });
 
