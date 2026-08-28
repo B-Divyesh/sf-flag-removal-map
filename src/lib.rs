@@ -891,6 +891,7 @@ mod tests {
     use tempfile::tempdir;
 
     #[test]
+    // @claim:provider-shapes
     fn parses_common_provider_shapes() {
         let (_, flags) = parse_provider_export(r#"{"provider":"test","items":[{"key":"alpha","archived":true},{"name":"beta","enabled":true}]}"#).unwrap();
         assert_eq!(flags.len(), 2);
@@ -979,6 +980,7 @@ mod tests {
     }
 
     #[test]
+    // @claim:reference-kinds
     fn analysis_finds_code_config_test_and_docs() {
         let temp = tempdir().unwrap();
         fs::write(

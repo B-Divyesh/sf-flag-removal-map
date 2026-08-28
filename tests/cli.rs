@@ -17,6 +17,7 @@ fn help_documents_inputs_and_exit_codes() {
 }
 
 #[test]
+// @claim:combined-evidence-plan
 fn documented_json_workflow_runs_end_to_end() {
     let temp = tempdir().unwrap();
     let repository = temp.path().join("repo");
@@ -57,6 +58,7 @@ fn documented_json_workflow_runs_end_to_end() {
 }
 
 #[test]
+// @claim:decision-rule
 fn dated_evidence_rule_has_cli_counterexamples() {
     let temp = tempdir().unwrap();
     let repository = temp.path().join("repo");
@@ -125,6 +127,7 @@ fn dated_evidence_rule_has_cli_counterexamples() {
 }
 
 #[test]
+// @claim:json-options
 fn documented_options_and_output_contracts_are_observable() {
     let temp = tempdir().unwrap();
     let repo = temp.path().join("repo");
@@ -179,6 +182,7 @@ fn documented_options_and_output_contracts_are_observable() {
 }
 
 #[test]
+// @claim:repository-read-only
 fn cli_does_not_edit_the_repository_or_need_network_dependencies() {
     let temp = tempdir().unwrap();
     let repo = temp.path().join("repo");
@@ -208,6 +212,7 @@ fn cli_does_not_edit_the_repository_or_need_network_dependencies() {
 }
 
 #[test]
+// @claim:plan-checklist
 fn markdown_plan_lists_evidence_and_every_human_check_across_repositories() {
     let temp = tempdir().unwrap();
     let repo_a = temp.path().join("a");
@@ -260,6 +265,7 @@ fn markdown_plan_lists_evidence_and_every_human_check_across_repositories() {
 }
 
 #[test]
+// @claim:exit-codes
 fn all_documented_exit_codes_are_observable() {
     let temp = tempdir().unwrap();
     let repo = temp.path().join("repo");
@@ -343,6 +349,7 @@ fn review_gate_and_invalid_input_use_documented_codes() {
 }
 
 #[test]
+// @claim:cli-demo
 fn cli_demo_creates_a_temporary_plan_without_reading_the_working_directory() {
     let temp = tempdir().unwrap();
     let output = binary()
