@@ -1,4 +1,4 @@
-# Copy audit — polish 4
+# Copy audit — polish 5
 
 Audited 2026-08-28 against the final landing source and cold mobile render. The first screen says the job, audience, and first action in one breath. No sentence exceeds 22 words and no banned marketing term appears.
 
@@ -29,7 +29,7 @@ Audited 2026-08-28 against the final landing source and cold mobile render. The 
 | 3 | You are offline. | Pass |
 | 7 | This page and the sample still work. | Pass |
 
-The current catalog line is 9 words, verb-first, and 66 characters: “Review completed feature flags with local evidence before removal.”
+The current catalog line is 9 words, verb-first, and 67 characters: “Review completed feature flags using local evidence before removal.”
 
 | Concept | One term |
 | --- | --- |

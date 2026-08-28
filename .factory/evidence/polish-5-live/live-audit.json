@@ -1,0 +1,49 @@
+{
+  "origin": "https://flag-removal-map.sociobot.in",
+  "routes": {
+    "home": {
+      "status": 200,
+      "title": "Flag Removal Map — review completed flags",
+      "focus": "H1",
+      "width": 390
+    },
+    "demo": {
+      "status": 200,
+      "title": "Demo — Flag Removal Map",
+      "focus": "H1",
+      "width": 390
+    },
+    "privacy": {
+      "status": 200,
+      "title": "Privacy — Flag Removal Map",
+      "focus": "H1",
+      "width": 390
+    },
+    "terms": {
+      "status": 200,
+      "title": "Terms — Flag Removal Map",
+      "focus": "H1",
+      "width": 390
+    },
+    "notFound": {
+      "status": 404,
+      "title": "Page not found — Flag Removal Map",
+      "focus": "H1",
+      "width": 390
+    }
+  },
+  "demo": {
+    "directQuery": true,
+    "references": 3,
+    "postLoadRequests": 0,
+    "sessionMarkerDiscarded": true,
+    "offlineReload": true
+  },
+  "axe": {
+    "home": 0,
+    "demo": 0,
+    "privacy": 0,
+    "terms": 0,
+    "notFound": 0
+  }
+}
