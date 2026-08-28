@@ -1,5 +1,16 @@
+import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
+
+function buildCoordinate() {
+  const supplied = process.env.GITHUB_SHA ?? process.env.BUILD_ID;
+  if (supplied) return supplied.slice(0, 7);
+  try {
+    return execFileSync("git", ["rev-parse", "--short=7", "HEAD"], { encoding: "utf8" }).trim();
+  } catch {
+    return "source";
+  }
+}
 
 export default defineConfig({
   root: resolve(__dirname),
@@ -22,8 +33,7 @@ export default defineConfig({
   plugins: [{
     name: "build-coordinate",
     transformIndexHtml(html) {
-      const build = (process.env.GITHUB_SHA ?? process.env.BUILD_ID ?? "local").slice(0, 7);
-      return html.replaceAll("%BUILD_ID%", build);
+      return html.replaceAll("%BUILD_ID%", buildCoordinate());
     },
   }],
 });

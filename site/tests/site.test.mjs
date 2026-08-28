@@ -3,8 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
-const [home, demo, privacy, terms, notFound, script, css, config, sitemap] = await Promise.all([
-  read("../index.html"), read("../demo/index.html"), read("../privacy/index.html"), read("../terms/index.html"), read("../404.html"), read("../src/main.ts"), read("../src/styles.css"), read("../public/staticwebapp.config.json"), read("../public/sitemap.xml"),
+const [home, demo, privacy, terms, notFound, script, css, config, sitemap, viteConfig] = await Promise.all([
+  read("../index.html"), read("../demo/index.html"), read("../privacy/index.html"), read("../terms/index.html"), read("../404.html"), read("../src/main.ts"), read("../src/styles.css"), read("../public/staticwebapp.config.json"), read("../public/sitemap.xml"), read("../vite.config.ts"),
 ]);
 const routes = [home, demo, privacy, terms, notFound];
 
@@ -15,6 +15,7 @@ test("@claim:route-metadata every route has complete title, canonical, social, i
     assert.match(html, /apple-touch-icon/); assert.match(html, /<main id="main"/); assert.match(html, /href="\/privacy\//); assert.match(html, /href="\/terms\//); assert.match(html, /Source on GitHub \(external\)/); assert.match(html, /build %BUILD_ID%/);
   }
   assert.match(demo, /<title>Demo — Flag Removal Map<\/title>/); assert.match(notFound, /name="robots" content="noindex"/); assert.match(sitemap, /\/demo\//);
+  assert.match(viteConfig, /git", \["rev-parse", "--short=7", "HEAD"\]/); assert.doesNotMatch(viteConfig, /\?\? "local"/);
 });
 
 test("@claim:demo-isolation demo uses its own marker and gives reset and discard controls", () => {
