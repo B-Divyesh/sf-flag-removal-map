@@ -16,9 +16,9 @@ after(async () => new Promise((done) => server.close(done)));
 async function axe(page) { await page.addScriptTag({ content: axeSource }); const results = await page.evaluate(async () => axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa"] } })); assert.deepEqual(results.violations, []); }
 const today = new Date().toISOString().slice(0, 10);
 
-test("@claim:demo-one-click direct demo shows a completed plan and exactly three references", async () => {
+test("@claim:demo-one-click the one-click demo query opens a completed plan with exactly three references", async () => {
   const browser = await chromium.launch(); const context = await browser.newContext({ viewport: { width: 390, height: 844 } }); const page = await context.newPage();
-  await page.goto(`${base}/demo/`, { waitUntil: "networkidle" }); await page.getByRole("heading", { name: "Removal candidate" }).waitFor(); assert.equal(await page.locator(".reference-list li").count(), 3); assert.match(await page.locator("#evaluation-json").inputValue(), /"as_of"/); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390); await context.close(); await browser.close();
+  await page.goto(`${base}/?demo=1`, { waitUntil: "networkidle" }); assert.equal(page.url(), `${base}/demo/`); await page.getByRole("heading", { name: "Removal candidate" }).waitFor(); assert.equal(await page.locator(".reference-list li").count(), 3); assert.match(await page.locator("#evaluation-json").inputValue(), /"as_of"/); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390); await context.close(); await browser.close();
 });
 
 test("@claim:demo-isolation demo editing and reset leave non-demo storage untouched, and Start for real discards its marker", async () => {
