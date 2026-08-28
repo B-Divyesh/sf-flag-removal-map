@@ -45,4 +45,10 @@ Every prior unlisted claim was either removed/narrowed from public copy or mappe
 
 ## Live check
 
-Deployment is triggered by the repair commit. After it is live, verify `/`, `/demo/`, `/privacy/`, `/terms/`, and a made-up route cold; compare the live result to `home-desktop.png` and `demo-mobile.png`.
+Deployed through Azure Static Web Apps on 2026-08-28. Cold checks passed:
+
+- `https://flag-removal-map.sociobot.in/` → 200, title `Flag Removal Map — review completed flags`.
+- `https://flag-removal-map.sociobot.in/demo/` → 200, title `Demo — Flag Removal Map`, immediate removal candidate, banner, and zero Axe A/AA violations at 390 px.
+- `/privacy/` and `/terms/` → 200 with their route-specific H1s.
+- `https://flag-removal-map.sociobot.in/not-a-real-page-qa` → designed page with HTTP 404.
+- `/opt/fleet/lib/verify-url.sh` output and screenshots: `.factory/evidence/live/verify.json`, `screenshot-desktop.png`, and `screenshot-mobile.png`.

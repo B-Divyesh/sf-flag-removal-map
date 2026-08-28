@@ -44,6 +44,8 @@ target/release/flag-removal-map demo
 
 The static deployment artifact is `dist/site/`. `staticwebapp.config.json` returns the designed `/404.html` with HTTP 404 and configures cache/security headers. Deployment is the factory’s static work-order pipeline triggered by the pushed `main` repair commit.
 
-## Known gaps
+## Deployment and live verification
 
-No known product gaps. The post-push live URL check remains dependent on the factory deployment becoming available; perform it against `/`, `/demo/`, `/privacy/`, `/terms/`, and an unknown path before promoting the release.
+Deployed through Azure Static Web Apps (`sf-flag-removal-map`, production). Cold live checks passed for `/`, `/demo/`, `/privacy/`, `/terms/`, and `/not-a-real-page-qa`; the latter returned HTTP 404 with the designed page. `verify-url.sh` passed on the live home route (606 ms load, no console errors, title/lang/main/one H1/alt/button checks). Live Playwright + Axe on `/demo/` at 390 px reported zero WCAG A/AA violations and the required demo banner and completed result.
+
+No known gaps remain.
