@@ -548,6 +548,7 @@ blockquote cite {
 
 .field-notebook {
   grid-column: 1;
+  min-width: 0;
   padding: clamp(20px, 4vw, 40px);
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -607,6 +608,7 @@ textarea:hover {
 
 .result-panel {
   grid-column: 2;
+  min-width: 0;
   min-height: 590px;
   padding: clamp(24px, 4vw, 40px);
   border-left: 1px solid var(--text);
@@ -716,6 +718,7 @@ textarea:hover {
 
 .result-panel li {
   margin-bottom: 8px;
+  overflow-wrap: anywhere;
 }
 
 .reference-list code {

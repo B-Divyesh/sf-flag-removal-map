@@ -22,6 +22,7 @@ test("@claim:demo-one-click landing and query entry show the completed result in
     const result = page.getByRole("heading", { name: "Removal candidate" }); await result.waitFor();
     const resultBox = await result.boundingBox(); const editBox = await page.getByRole("link", { name: "Edit sample inputs" }).boundingBox();
     assert.equal(await page.evaluate(() => scrollY), 0, `${entry} must open at the top`); assert.ok(resultBox && resultBox.y >= 0 && resultBox.y < 844, `${entry} result must intersect the first 390 × 844 viewport`); assert.ok(editBox && editBox.y > resultBox.y && editBox.y < 844, `${entry} edit action must follow the result in the first viewport`);
+    for (const selector of [".demo-grid", ".result-panel", ".field-notebook"]) { const box = await page.locator(selector).boundingBox(); assert.ok(box && box.x >= 0 && box.x + box.width <= 390, `${entry} ${selector} must fit the viewport`); }
     assert.equal(await page.locator(".reference-list li").count(), 3); assert.match(await page.locator("#evaluation-json").inputValue(), /"as_of"/); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
   };
   await page.goto(`${base}/`, { waitUntil: "networkidle" }); await page.getByRole("link", { name: /Try it with sample data/i }).click(); await page.waitForURL(`${base}/demo/`); await assertFirstScreenResult("landing click");
