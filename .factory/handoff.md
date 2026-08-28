@@ -3,7 +3,7 @@
 - Work order: `flag-removal-map-polish-1`
 - Base reviewed: `67420075f28ba479dabb9ad97f547e670e87face`
 - Review findings source: `7cde0dd09bae32505b3e2084560d5828002ecc23`
-- Repair commit: recorded after this handoff is written.
+- Repair commit: `99b0b13ba7f67a4e98bdbd437dfa138653e38e1e` (amended below after final handoff metadata).
 
 ## Delivered
 
