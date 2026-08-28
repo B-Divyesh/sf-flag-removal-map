@@ -29,7 +29,7 @@ Audited 2026-08-28 against the final landing source and cold mobile render. The 
 | 3 | You are offline. | Pass |
 | 7 | This page and the sample still work. | Pass |
 
-The current catalog line is 9 words, verb-first, and 65 characters: “Review completed feature flags with local evidence before removal.”
+The current catalog line is 9 words, verb-first, and 66 characters: “Review completed feature flags with local evidence before removal.”
 
 | Concept | One term |
 | --- | --- |
