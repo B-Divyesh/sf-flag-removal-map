@@ -623,12 +623,17 @@ textarea:hover {
 .result-error {
   padding: 16px;
   border: 2px solid var(--danger);
-  color: var(--danger);
+  background: var(--text);
+  color: var(--background);
 }
 
 .result-panel h4 {
   margin: 28px 0 12px;
-  color: var(--contour);
+  /* Result labels are ink on stock, not faint contour lines. */
+  display: table;
+  padding: 4px 8px;
+  background: var(--text);
+  color: var(--background);
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
