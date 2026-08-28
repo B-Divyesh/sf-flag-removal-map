@@ -16,9 +16,17 @@ after(async () => new Promise((done) => server.close(done)));
 async function axe(page) { await page.addScriptTag({ content: axeSource }); const results = await page.evaluate(async () => axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa"] } })); assert.deepEqual(results.violations, []); }
 const today = new Date().toISOString().slice(0, 10);
 
-test("@claim:demo-one-click the one-click demo query opens a completed plan with exactly three references", async () => {
+test("@claim:demo-one-click landing and query entry show the completed result in the first mobile screen", async () => {
   const browser = await chromium.launch(); const context = await browser.newContext({ viewport: { width: 390, height: 844 } }); const page = await context.newPage();
-  await page.goto(`${base}/?demo=1`, { waitUntil: "networkidle" }); assert.equal(page.url(), `${base}/demo/`); await page.getByRole("heading", { name: "Removal candidate" }).waitFor(); assert.equal(await page.locator(".reference-list li").count(), 3); assert.match(await page.locator("#evaluation-json").inputValue(), /"as_of"/); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390); await context.close(); await browser.close();
+  const assertFirstScreenResult = async (entry) => {
+    const result = page.getByRole("heading", { name: "Removal candidate" }); await result.waitFor();
+    const resultBox = await result.boundingBox(); const editBox = await page.getByRole("link", { name: "Edit sample inputs" }).boundingBox();
+    assert.equal(await page.evaluate(() => scrollY), 0, `${entry} must open at the top`); assert.ok(resultBox && resultBox.y >= 0 && resultBox.y < 844, `${entry} result must intersect the first 390 × 844 viewport`); assert.ok(editBox && editBox.y > resultBox.y && editBox.y < 844, `${entry} edit action must follow the result in the first viewport`);
+    assert.equal(await page.locator(".reference-list li").count(), 3); assert.match(await page.locator("#evaluation-json").inputValue(), /"as_of"/); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
+  };
+  await page.goto(`${base}/`, { waitUntil: "networkidle" }); await page.getByRole("link", { name: /Try it with sample data/i }).click(); await page.waitForURL(`${base}/demo/`); await assertFirstScreenResult("landing click");
+  await page.goto(`${base}/?demo=1`, { waitUntil: "networkidle" }); assert.equal(page.url(), `${base}/demo/`); await assertFirstScreenResult("?demo=1");
+  await context.close(); await browser.close();
 });
 
 test("@claim:demo-isolation demo editing and reset leave non-demo storage untouched, and Start for real discards its marker", async () => {

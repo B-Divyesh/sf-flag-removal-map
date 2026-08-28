@@ -99,6 +99,10 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, classN
 function renderResult(container: HTMLElement, classification: Classification, key: string, reasons: string[], references: string[]): void {
   container.replaceChildren(el("p", `FLAG / ${key}`, "result-kicker"));
   container.append(el("h2", names[classification], `result-status ${classification}`));
+  const editSample = el("a", "Edit sample inputs", "edit-sample-link");
+  editSample.href = "#provider-json";
+  editSample.addEventListener("click", () => requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>("#provider-json")?.focus()));
+  container.append(editSample);
   container.append(el("h3", "Evidence"));
   const evidence = el("ul"); reasons.forEach((reason) => evidence.append(el("li", reason))); container.append(evidence);
   container.append(el("h3", `References / ${references.length}`));

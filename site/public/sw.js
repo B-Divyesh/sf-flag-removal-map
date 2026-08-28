@@ -1,4 +1,4 @@
-const CACHE = "flag-removal-map-v3";
+const CACHE = "flag-removal-map-v4";
 const SHELL = ["/", "/index.html", "/demo/", "/privacy/", "/terms/", "/404.html", "/topographic-route.webp", "/topographic-route-600.webp", "/mark.svg", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {

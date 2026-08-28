@@ -547,6 +547,7 @@ blockquote cite {
 }
 
 .field-notebook {
+  grid-column: 1;
   padding: clamp(20px, 4vw, 40px);
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -605,6 +606,7 @@ textarea:hover {
 }
 
 .result-panel {
+  grid-column: 2;
   min-height: 590px;
   padding: clamp(24px, 4vw, 40px);
   border-left: 1px solid var(--text);
@@ -652,6 +654,15 @@ textarea:hover {
 
 .result-status.review {
   color: #f2be62;
+}
+
+.edit-sample-link {
+  display: none;
+  min-height: 44px;
+  align-items: center;
+  margin: -12px 0 8px;
+  color: var(--background);
+  font-weight: 800;
 }
 
 :root[data-theme="dark"] .result-status.review {
@@ -961,10 +972,19 @@ footer > a {
     grid-template-columns: 1fr;
   }
 
+  .field-notebook,
+  .result-panel {
+    grid-column: 1;
+  }
+
   .result-panel {
     min-height: 420px;
     border-top: 1px solid var(--text);
     border-left: 0;
+  }
+
+  .edit-sample-link {
+    display: inline-flex;
   }
 
   .limits ul {
