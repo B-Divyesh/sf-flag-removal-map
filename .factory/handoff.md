@@ -1,4 +1,28 @@
-# Flag Removal Map — repair handoff
+# Flag Removal Map — verification handoff
+
+> **Independent verification status: PASS.** Candidate `e06d876b4faf398c91c57a8c716358962451a603` passed clean-checkout, consumer-package, and live-deployment QA on 2026-08-28. See `.factory/verification-2.md` for the complete evidence.
+
+- Tested URL: <https://flag-removal-map.sociobot.in/>
+- Product code changed during verification: none
+- All quality gates passed: `npm test`, `npm run check`, `npm run build`, and `cargo package`.
+- The live HTML, legal pages, fingerprinted assets, worker, and WebP assets byte-match the fresh candidate build.
+- No release-blocking, high, medium, or low product defects found.
+
+## Verified run and handoff
+
+```sh
+npm ci
+npm test
+npm run check
+npm run build
+cargo package
+```
+
+- Release binary: `target/release/flag-removal-map`
+- Ready-to-publish crate: `target/package/flag-removal-map-0.1.0.crate`
+- Registry publishing was not performed.
+
+## Prior repair context
 
 > **Release status: PASS.** This repair resolves the independent verifier's interactive WCAG AA failure and its required static-cache correction. The deployed artifact matches the local production build.
 
