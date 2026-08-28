@@ -135,6 +135,45 @@ fn dated_evidence_rule_has_cli_counterexamples() {
 }
 
 #[test]
+// @claim:optional-usage-report
+fn optional_usage_report_is_accepted_and_routes_to_review() {
+    let temp = tempdir().unwrap();
+    let repository = temp.path().join("repo");
+    fs::create_dir(&repository).unwrap();
+    fs::write(repository.join("checkout.ts"), "use('checkout-v2')").unwrap();
+    fs::write(
+        temp.path().join("flags.json"),
+        r#"{"flags":[{"key":"checkout-v2","enabled":false,"status":"completed"}]}"#,
+    )
+    .unwrap();
+
+    let output = binary()
+        .args([
+            "--flags",
+            temp.path().join("flags.json").to_str().unwrap(),
+            "--repo",
+            repository.to_str().unwrap(),
+            "--json",
+        ])
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let flag = &report["flags"][0];
+    assert_eq!(flag["classification"], "review");
+    assert!(
+        flag["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "No evaluation evidence was supplied for this flag."),
+        "a missing optional report must explicitly require human review"
+    );
+    assert!(!temp.path().join("flag-removal-plan.md").exists());
+}
+
+#[test]
 // @claim:json-options
 fn documented_options_and_output_contracts_are_observable() {
     let temp = tempdir().unwrap();
