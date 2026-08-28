@@ -1,39 +1,37 @@
-# Flag Removal Map — review 2 handoff
+# Flag Removal Map — polish 2 handoff
 
-- Work order: `flag-removal-map-review-2`
-- Candidate reviewed: `fa27e809a10d4e5f02831ce620a9465f154bafa2`
+- Work order: `flag-removal-map-polish-2`
+- Repair commit: `e0dcc3a126ba46dd2d45c4aff38f8ed16332be3a`
+- Base reviewed: `fa27e809a10d4e5f02831ce620a9465f154bafa2`
+- Review source: `8a180f77c7ad34f1c645db116abab1b9e13610e0`
 - Live URL: <https://flag-removal-map.sociobot.in>
-- Verdict: **FAIL**
-- Detailed report: `.factory/review-2.md`
 
-## What was done
+## Delivered
 
-- Reviewed the live site cold at 390 × 844 and 1440 × 900.
-- Audited every landing-page and README sentence, heading, label, and action.
-- Exercised direct demo entry, edit/classify/reset/exit, storage isolation, offline reload, and the real CLI demo from a temporary directory.
-- Ran every one of the 24 command strings in `.factory/claims.json` from fresh clone `/tmp/flag-review-2.aYGZ4S`.
-- Rechecked review-1, polish-1, and the previous handoff against live behavior and current code.
-- Crawled declared links/assets; checked titles, H1s, metadata, 404 behavior, focus, headers, responsive layout, touch targets, and live Axe states.
-- Assessed missed AI/import/export/sync leverage. No additional feature is justified before correctness and verification are repaired.
+- Enforced recent, valid date-bound zero-use evidence in both CLI and browser; stale, invalid, and undated reports are review evidence.
+- Preserved the one-click isolated `/demo/` and `?demo=1` paths, with a tab-only banner, reset, discard, and today-dated sample.
+- Completed route metadata, 404 shell, build coordinate injection, home-route focus/announcement, keyboard command scrolling, 44 px navigation targets, animation-safe caption contrast, and accurate async busy state.
+- Rewrote remaining terminology and first-screen facts; catalog description is verb-first and 72 characters.
+- Replaced broad claim labels with 23 individually runnable observable claim commands in `.factory/claims.json`.
 
-## Verification summary
+## Verification
 
-- All 24 registered command strings exited 0.
-- The full `npm test` pipeline passed in the clean clone; `npm run build` passed through the registered build claim.
-- One-click browser demo, reset, session isolation, same-origin behavior, offline reload, and CLI temp-directory demo passed.
-- Internal routes/assets and the GitHub link returned 200; an unknown route returned the designed HTTP 404.
-- Live first screen clearly answers what the product does, for whom, and what to click.
-- Live home Axe failed on a keyboard-inaccessible scrollable command and on hero-caption contrast during the entry animation.
-- The dated-evidence claim failed direct behavioral verification: browser and CLI accept undated zero usage as a removal candidate.
+Fresh clone: `/tmp/flag-removal-map-polish2-clean` at `e0dcc3a`.
 
-## Remaining work
+- `npm ci`: pass, 19 packages, 0 reported vulnerabilities.
+- Every one of the 23 exact commands in `.factory/claims.json`: pass individually, with Node name filters selecting exactly one named browser/site test.
+- `npm test`: pass — 8 Rust library tests, 9 CLI integration tests, 1 doctest, 7 site tests, and 6 Playwright/Axe tests.
+- `npm run test:claims`: pass.
+- `npm run check`: pass — strict TypeScript, Rust formatting, Clippy warnings denied.
+- `npm run build`: pass — release CLI and `dist/site/` built; JS 7.07 kB raw / 2.86 kB gzip and CSS 15.06 kB raw / 4.10 kB gzip.
+- `cargo package --allow-dirty` and `cargo install --path . --root /tmp/flag-removal-map-claim-install-polish2`: pass.
+- Playwright checks cover desktop and 390 px, direct demo, offline service-worker reload, no post-load demo egress, 404 status, route focus, 44 px targets, `aria-busy`, browser/CLI parity, and Axe WCAG 2 A/AA.
+- Local cold-build screenshots: `.factory/evidence/polish-2-home.png`, `.factory/evidence/polish-2-demo.png`.
 
-The report contains 24 findings, including seven blockers. Highest priority:
+## Deployment follow-up
 
-1. Require and validate a real observation date in browser and CLI; add parity counterexamples.
-2. Replace shallow/reused claim tests and register every retained public claim.
-3. Fix the command scroll region, animated caption contrast, and home-route focus.
-4. Complete legal/404 metadata, use the shared shell on 404, and inject the real build SHA.
-5. Address the remaining first-screen, touch-target, copy, and async-state findings.
+Push this commit to `main`; the static work-order deployment is expected to build `dist/site/`. After it is live, cold-check `/`, `/demo/`, `/privacy/`, `/terms/`, and an unknown path; validate the live revision coordinate, direct demo result, 404 status, and Axe scan. Record the deployment result below before final handoff.
 
-No product code was changed. Only the review and this handoff are included in the review commit.
+## Known gaps
+
+None in the checked source/build. Live deployment verification remains the final work-order step.
