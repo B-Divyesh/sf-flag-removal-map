@@ -21,6 +21,43 @@ test("@claim:demo-one-click direct demo shows a completed plan and exactly three
   await page.goto(`${base}/demo/`, { waitUntil: "networkidle" }); await page.getByRole("heading", { name: "Removal candidate" }).waitFor(); assert.equal(await page.locator(".reference-list li").count(), 3); assert.match(await page.locator("#evaluation-json").inputValue(), /"as_of"/); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390); await context.close(); await browser.close();
 });
 
+test("@claim:demo-isolation demo editing and reset leave non-demo storage untouched, and Start for real discards its marker", async () => {
+  const browser = await chromium.launch(); const context = await browser.newContext(); const page = await context.newPage();
+  const storage = () => page.evaluate(() => ({
+    local: Object.keys(localStorage).sort().map((key) => [key, localStorage.getItem(key)]),
+    session: Object.keys(sessionStorage).sort().map((key) => [key, sessionStorage.getItem(key)]),
+  }));
+
+  await page.goto(`${base}/`, { waitUntil: "networkidle" });
+  await page.evaluate(() => {
+    localStorage.setItem("real:flag-removal-map", "local-sentinel");
+    sessionStorage.setItem("real:flag-removal-map", "session-sentinel");
+  });
+  await page.goto(`${base}/demo/`, { waitUntil: "networkidle" });
+  assert.deepEqual(await storage(), {
+    local: [["real:flag-removal-map", "local-sentinel"]],
+    session: [["demo:flag-removal-map", "active"], ["real:flag-removal-map", "session-sentinel"]],
+  });
+
+  await page.locator("#provider-json").fill('{"key":"checkout-v2","enabled":true,"status":"active"}');
+  await page.getByRole("button", { name: /classify sample flag/i }).click();
+  await page.getByRole("heading", { name: "Keep" }).waitFor();
+  await page.getByRole("button", { name: "Reset demo" }).click();
+  await page.getByRole("heading", { name: "Removal candidate" }).waitFor();
+  assert.match(await page.locator("#provider-json").inputValue(), /"completed"/);
+  assert.deepEqual(await storage(), {
+    local: [["real:flag-removal-map", "local-sentinel"]],
+    session: [["demo:flag-removal-map", "active"], ["real:flag-removal-map", "session-sentinel"]],
+  });
+
+  await Promise.all([page.waitForURL(`${base}/`), page.getByRole("link", { name: "Start for real" }).click()]);
+  assert.deepEqual(await storage(), {
+    local: [["real:flag-removal-map", "local-sentinel"]],
+    session: [["real:flag-removal-map", "session-sentinel"]],
+  });
+  await context.close(); await browser.close();
+});
+
 test("@claim:browser-no-egress demo edits and reset make no network request after load", async () => {
   const browser = await chromium.launch(); const context = await browser.newContext(); const page = await context.newPage(); await page.goto(`${base}/demo/`, { waitUntil: "networkidle" }); let requests = 0; page.on("request", () => requests++);
   await page.getByRole("button", { name: /classify sample flag/i }).click(); await page.getByRole("button", { name: /reset demo/i }).click(); assert.equal(requests, 0); await context.close(); await browser.close();
@@ -28,6 +65,29 @@ test("@claim:browser-no-egress demo edits and reset make no network request afte
 
 test("@claim:offline-reload controlled demo reloads and classifies offline", async () => {
   const browser = await chromium.launch(); const context = await browser.newContext(); const page = await context.newPage(); await page.goto(`${base}/demo/`, { waitUntil: "networkidle" }); await page.evaluate(() => navigator.serviceWorker.ready); await page.waitForFunction(() => navigator.serviceWorker.controller !== null); await context.setOffline(true); await page.reload({ waitUntil: "domcontentloaded" }); await page.getByRole("heading", { name: "Removal candidate" }).waitFor(); await context.close(); await browser.close();
+});
+
+test("@claim:privacy-site every public route stays anonymous, local, and free of persistent visitor data", async () => {
+  const browser = await chromium.launch();
+  const routes = ["/", "/demo/", "/privacy/", "/terms/", "/not-a-real-page-privacy"];
+  for (const path of routes) {
+    const context = await browser.newContext(); const page = await context.newPage(); const requests = [];
+    page.on("request", (request) => requests.push(request.url()));
+    const response = await page.goto(`${base}${path}`, { waitUntil: "networkidle" });
+    assert.equal(response?.status(), path === "/not-a-real-page-privacy" ? 404 : 200, path);
+    for (const request of requests) assert.equal(new URL(request).origin, new URL(base).origin, `${path} requested ${request}`);
+    assert.deepEqual(await context.cookies(), [], `${path} must not set cookies`);
+    const storage = await page.evaluate(async () => ({
+      local: Object.keys(localStorage).sort().map((key) => [key, localStorage.getItem(key)]),
+      session: Object.keys(sessionStorage).sort().map((key) => [key, sessionStorage.getItem(key)]),
+      indexedDb: typeof indexedDB.databases === "function" ? (await indexedDB.databases()).map((database) => database.name) : [],
+    }));
+    assert.deepEqual(storage.local, [], `${path} must not use localStorage`);
+    assert.deepEqual(storage.session, path === "/demo/" ? [["demo:flag-removal-map", "active"]] : [], `${path} session storage`);
+    assert.deepEqual(storage.indexedDb, [], `${path} must not use IndexedDB`);
+    await context.close();
+  }
+  await browser.close();
 });
 
 test("@claim:404-route unknown routes keep their URL and return the designed 404", async () => {

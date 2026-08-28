@@ -18,12 +18,12 @@ test("@claim:route-metadata every route has complete title, canonical, social, i
   assert.match(viteConfig, /git", \["rev-parse", "--short=7", "HEAD"\]/); assert.doesNotMatch(viteConfig, /\?\? "local"/);
 });
 
-test("@claim:demo-isolation demo uses its own marker and gives reset and discard controls", () => {
+test("demo documents its marker and gives reset and discard controls", () => {
   assert.match(home, /Try it with sample data/); assert.match(home, /href="\/demo\//); assert.match(demo, /Demo — sample data stays in this tab\./); assert.match(demo, /Reset demo/); assert.match(demo, /Start for real/);
   assert.match(script, /sessionStorage\.setItem\("demo:flag-removal-map"/); assert.match(script, /sessionStorage\.removeItem\("demo:flag-removal-map"/); assert.match(script, /location\.replace\("\/demo\/"\)/);
 });
 
-test("@claim:privacy-site local assets, storage, and network policy match the privacy statement", () => {
+test("privacy copy and response policy describe the local site", () => {
   for (const html of routes) assert.doesNotMatch(html, /<(?:script|img)[^>]+(?:src|href)="https?:\/\//);
   assert.doesNotMatch(script, /fetch\(|XMLHttpRequest|WebSocket/); assert.match(privacy, /no accounts, analytics, advertising, cookies, or remote fonts/); assert.match(config, /default-src 'self'/);
 });

@@ -1,9 +1,147 @@
 use std::fs;
+use std::path::Path;
 use std::process::Command;
 use tempfile::tempdir;
 
 fn binary() -> Command {
     Command::new(env!("CARGO_BIN_EXE_flag-removal-map"))
+}
+
+#[derive(Debug, Eq, PartialEq)]
+struct TreeEntry {
+    path: String,
+    kind: &'static str,
+    bytes: u64,
+    read_only: bool,
+    modified_nanos: u128,
+    content_hash: u64,
+}
+
+/// Capture the repository's names, node kinds, content, and modification
+/// metadata. Reading a tree is intentionally separate from the CLI so this
+/// claim catches edits anywhere under the supplied repository root.
+fn snapshot_tree(root: &Path) -> Vec<TreeEntry> {
+    fn hash(bytes: &[u8]) -> u64 {
+        bytes.iter().fold(0xcbf29ce484222325_u64, |value, byte| {
+            (value ^ u64::from(*byte)).wrapping_mul(0x100000001b3)
+        })
+    }
+
+    fn visit(root: &Path, path: &Path, output: &mut Vec<TreeEntry>) {
+        let metadata = fs::symlink_metadata(path).unwrap();
+        let file_type = metadata.file_type();
+        let (kind, content_hash) = if file_type.is_file() {
+            ("file", hash(&fs::read(path).unwrap()))
+        } else if file_type.is_symlink() {
+            (
+                "symlink",
+                hash(path.read_link().unwrap().as_os_str().as_encoded_bytes()),
+            )
+        } else if file_type.is_dir() {
+            ("directory", 0)
+        } else {
+            ("other", 0)
+        };
+        let modified_nanos = metadata
+            .modified()
+            .unwrap()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        output.push(TreeEntry {
+            path: path.strip_prefix(root).unwrap().display().to_string(),
+            kind,
+            bytes: metadata.len(),
+            read_only: metadata.permissions().readonly(),
+            modified_nanos,
+            content_hash,
+        });
+        if file_type.is_dir() {
+            let mut entries = fs::read_dir(path)
+                .unwrap()
+                .map(|entry| entry.unwrap().path())
+                .collect::<Vec<_>>();
+            entries.sort();
+            for entry in entries {
+                visit(root, &entry, output);
+            }
+        }
+    }
+
+    let mut output = Vec::new();
+    visit(root, root, &mut output);
+    output.sort_by(|left, right| left.path.cmp(&right.path));
+    output
+}
+
+/// Install a seccomp filter in the child process before it execs the CLI.
+/// Any attempt to create or use a network socket kills that child, so a green
+/// command is observable proof that the tested workflow made no provider call.
+#[cfg(target_os = "linux")]
+fn network_denied_binary() -> Command {
+    use std::io;
+    use std::os::unix::process::CommandExt;
+
+    let mut command = binary();
+    unsafe {
+        command.pre_exec(|| {
+            const BPF_LD_W_ABS: u16 = 0x20;
+            const BPF_JMP_JEQ_K: u16 = 0x15;
+            const BPF_RET_K: u16 = 0x06;
+            const SECCOMP_RET_KILL_PROCESS: u32 = 0x8000_0000;
+            const SECCOMP_RET_ALLOW: u32 = 0x7fff_0000;
+            let filter = [
+                libc::sock_filter {
+                    code: BPF_LD_W_ABS,
+                    jt: 0,
+                    jf: 0,
+                    k: 0,
+                },
+                libc::sock_filter {
+                    code: BPF_JMP_JEQ_K,
+                    jt: 0,
+                    jf: 1,
+                    k: libc::SYS_socket as u32,
+                },
+                libc::sock_filter {
+                    code: BPF_RET_K,
+                    jt: 0,
+                    jf: 0,
+                    k: SECCOMP_RET_KILL_PROCESS,
+                },
+                libc::sock_filter {
+                    code: BPF_JMP_JEQ_K,
+                    jt: 0,
+                    jf: 1,
+                    k: libc::SYS_connect as u32,
+                },
+                libc::sock_filter {
+                    code: BPF_RET_K,
+                    jt: 0,
+                    jf: 0,
+                    k: SECCOMP_RET_KILL_PROCESS,
+                },
+                libc::sock_filter {
+                    code: BPF_RET_K,
+                    jt: 0,
+                    jf: 0,
+                    k: SECCOMP_RET_ALLOW,
+                },
+            ];
+            let program = libc::sock_fprog {
+                len: filter.len() as u16,
+                filter: filter.as_ptr() as *mut libc::sock_filter,
+            };
+            if libc::prctl(libc::PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != 0 {
+                return Err(io::Error::last_os_error());
+            }
+            if libc::prctl(libc::PR_SET_SECCOMP, libc::SECCOMP_MODE_FILTER, &program) != 0 {
+                return Err(io::Error::last_os_error());
+            }
+            Ok(())
+        });
+    }
+    command
 }
 
 #[test]
@@ -230,19 +368,26 @@ fn documented_options_and_output_contracts_are_observable() {
 
 #[test]
 // @claim:repository-read-only
-fn cli_does_not_edit_the_repository_or_need_network_dependencies() {
+#[cfg(target_os = "linux")]
+fn cli_does_not_edit_any_repository_path_or_make_network_syscalls() {
     let temp = tempdir().unwrap();
     let repo = temp.path().join("repo");
-    fs::create_dir(&repo).unwrap();
-    let source = repo.join("flag.ts");
-    fs::write(&source, "checkout-v2").unwrap();
-    let before = fs::read(&source).unwrap();
+    fs::create_dir_all(repo.join("nested/config")).unwrap();
+    fs::write(repo.join("flag.ts"), "checkout-v2").unwrap();
+    fs::write(repo.join("nested/config/flags.yaml"), "checkout-v2: false").unwrap();
+    fs::write(
+        repo.join("nested/notes.md"),
+        "Keep checkout-v2 until reviewed.",
+    )
+    .unwrap();
+    let before = snapshot_tree(&repo);
     fs::write(
         temp.path().join("flags.json"),
         r#"{"flags":[{"key":"checkout-v2","enabled":false,"status":"completed"}]}"#,
     )
     .unwrap();
-    let output = binary()
+    let capture = temp.path().join("analysis.json");
+    let output = network_denied_binary()
         .args([
             "--flags",
             temp.path().join("flags.json").to_str().unwrap(),
@@ -253,9 +398,17 @@ fn cli_does_not_edit_the_repository_or_need_network_dependencies() {
         .output()
         .unwrap();
     assert!(output.status.success());
-    assert_eq!(fs::read(&source).unwrap(), before);
-    assert!(!include_str!("../Cargo.lock").contains("reqwest"));
-    assert!(!include_str!("../Cargo.lock").contains("hyper"));
+    fs::write(&capture, &output.stdout).unwrap();
+    assert!(serde_json::from_slice::<serde_json::Value>(&output.stdout).is_ok());
+    assert!(
+        capture.is_file(),
+        "the JSON capture is outside the repository fixture"
+    );
+    assert_eq!(
+        snapshot_tree(&repo),
+        before,
+        "the CLI must not change any repository path, content, or metadata"
+    );
 }
 
 #[test]
