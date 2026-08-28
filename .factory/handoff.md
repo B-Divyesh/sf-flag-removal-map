@@ -28,10 +28,13 @@ Fresh clone: `/tmp/flag-removal-map-polish2-clean` at `e0dcc3a`.
 - Playwright checks cover desktop and 390 px, direct demo, offline service-worker reload, no post-load demo egress, 404 status, route focus, 44 px targets, `aria-busy`, browser/CLI parity, and Axe WCAG 2 A/AA.
 - Local cold-build screenshots: `.factory/evidence/polish-2-home.png`, `.factory/evidence/polish-2-demo.png`.
 
-## Deployment follow-up
+## Live deployment evidence
 
-Push this commit to `main`; the static work-order deployment is expected to build `dist/site/`. After it is live, cold-check `/`, `/demo/`, `/privacy/`, `/terms/`, and an unknown path; validate the live revision coordinate, direct demo result, 404 status, and Axe scan. Record the deployment result below before final handoff.
+- Deployed with Azure Static Web Apps CLI from `dist/site/` on 2026-08-28; production reports build coordinate `f501beb`.
+- Cold route checks: `/`, `/demo/`, `/privacy/`, and `/terms/` return 200; `/not-a-real-page-qa` returns the designed 404 with HTTP 404.
+- `/opt/fleet/lib/verify-url.sh` produced `.factory/evidence/live-polish-2/verify.json`, `screenshot-desktop.png`, and `screenshot-mobile.png`: title, `lang`, one H1, main landmark, image alt text, and console-error checks all pass.
+- Live Playwright Axe checks at 390 px report zero WCAG 2 A/AA violations on `/`, `/demo/`, `/privacy/`, `/terms/`, and `/not-a-real-page-qa`. Direct `/demo/` rendered `Removal candidate` before interaction.
 
 ## Known gaps
 
-None in the checked source/build. Live deployment verification remains the final work-order step.
+None.

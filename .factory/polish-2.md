@@ -29,4 +29,4 @@ Repair source: review 1, polish 1, and `review-2.md` at `8a180f77c7ad34f1c645db1
 | Review-1 F1/F2/F5/F9/F10/F11 | Preserved the already-correct audience, isolated demo, source install, direct copy, and external labels. | browser/site claim suites |
 | Review-1 F3/F4/F6/F7/F8 | Completed claims, designed 404, metadata, home focus, and shared error shell. | `@claim:route-metadata`, `@claim:404-page`, `@claim:accessible-interactions` |
 
-Screenshots from the final cold local build are stored at `.factory/evidence/polish-2-home.png` and `.factory/evidence/polish-2-demo.png`. Live checks are recorded in the handoff after deployment.
+Screenshots from the final cold local build are stored at `.factory/evidence/polish-2-home.png` and `.factory/evidence/polish-2-demo.png`. Live checks at `https://flag-removal-map.sociobot.in/` passed on build `f501beb`: home/demo/privacy/terms 200, unknown route 404, and live Axe 0 violations on every route.
