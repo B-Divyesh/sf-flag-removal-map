@@ -84,3 +84,24 @@ fn review_gate_and_invalid_input_use_documented_codes() {
         .unwrap()
         .contains("not valid JSON"));
 }
+
+#[test]
+fn cli_demo_creates_a_temporary_plan_without_reading_the_working_directory() {
+    let temp = tempdir().unwrap();
+    let output = binary()
+        .current_dir(temp.path())
+        .arg("demo")
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("Sample complete: 1 removal candidate, 3 references."));
+    let plan = stdout
+        .lines()
+        .find_map(|line| line.strip_prefix("Plan: "))
+        .expect("demo should print its plan path");
+    let plan_text = fs::read_to_string(plan).unwrap();
+    assert!(plan_text.contains("REMOVE CANDIDATE"));
+    assert!(plan_text.contains("Zero observed evaluations never proves"));
+    assert!(!temp.path().join("removal-plan.md").exists());
+}

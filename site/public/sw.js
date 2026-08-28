@@ -1,5 +1,5 @@
-const CACHE = "flag-removal-map-v2";
-const SHELL = ["/", "/index.html", "/privacy/", "/terms/", "/topographic-route.webp", "/topographic-route-600.webp", "/mark.svg", "/manifest.webmanifest"];
+const CACHE = "flag-removal-map-v3";
+const SHELL = ["/", "/index.html", "/demo/", "/privacy/", "/terms/", "/404.html", "/topographic-route.webp", "/topographic-route-600.webp", "/mark.svg", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
@@ -27,6 +27,6 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE).then((cache) => cache.put(event.request, copy));
       }
       return response;
-    }).catch(() => event.request.mode === "navigate" ? caches.match("/index.html") : Response.error()))
+    }).catch(() => event.request.mode === "navigate" ? caches.match("/404.html") : Response.error()))
   );
 });

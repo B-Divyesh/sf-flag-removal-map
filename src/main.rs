@@ -47,12 +47,81 @@ struct Cli {
 }
 
 fn main() -> ExitCode {
+    let raw_args: Vec<String> = std::env::args().collect();
+    if raw_args
+        .get(1)
+        .is_some_and(|arg| arg == "demo" || arg == "--demo")
+    {
+        return run_demo();
+    }
     let cli = Cli::parse();
     match run(&cli) {
         Ok(code) => ExitCode::from(code),
         Err((code, message)) => {
             eprintln!("flag-removal-map: {message}");
             ExitCode::from(code)
+        }
+    }
+}
+
+/// Runs the bundled example in a new temporary directory.  This deliberately
+/// never reads the caller's repository or writes beside it.
+fn run_demo() -> ExitCode {
+    let directory = std::env::temp_dir().join(format!(
+        "flag-removal-map-demo-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|duration| duration.as_nanos())
+            .unwrap_or(0)
+    ));
+    let repository = directory.join("sample-repository");
+    let flags = directory.join("flags.json");
+    let evaluations = directory.join("evaluations.json");
+    let output = directory.join("removal-plan.md");
+    let result = (|| -> Result<(), String> {
+        fs::create_dir_all(repository.join("deploy")).map_err(|error| error.to_string())?;
+        fs::create_dir_all(repository.join("tests")).map_err(|error| error.to_string())?;
+        fs::write(&flags, include_str!("../examples/flags.json"))
+            .map_err(|error| error.to_string())?;
+        fs::write(&evaluations, include_str!("../examples/evaluations.json"))
+            .map_err(|error| error.to_string())?;
+        fs::write(
+            repository.join("checkout.ts"),
+            include_str!("../examples/sample-repository/checkout.ts"),
+        )
+        .map_err(|error| error.to_string())?;
+        fs::write(
+            repository.join("deploy/flags.yaml"),
+            include_str!("../examples/sample-repository/deploy/flags.yaml"),
+        )
+        .map_err(|error| error.to_string())?;
+        fs::write(
+            repository.join("tests/checkout.test.ts"),
+            include_str!("../examples/sample-repository/tests/checkout.test.ts"),
+        )
+        .map_err(|error| error.to_string())?;
+        let report = analyze(AnalysisOptions {
+            flags_path: flags,
+            evaluation_path: Some(evaluations),
+            repositories: vec![repository],
+            only_flags: vec![],
+            excludes: vec![],
+        })?;
+        fs::write(&output, render_markdown(&report)).map_err(|error| error.to_string())?;
+        println!(
+            "Sample complete: {} removal candidate, {} references.",
+            report.summary.remove, report.summary.references
+        );
+        println!("Temporary sample and plan: {}", directory.display());
+        println!("Plan: {}", output.display());
+        Ok(())
+    })();
+    match result {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(message) => {
+            eprintln!("flag-removal-map demo: {message}");
+            ExitCode::from(2)
         }
     }
 }

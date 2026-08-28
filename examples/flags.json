@@ -1,0 +1,6 @@
+{
+  "provider": "sample-provider",
+  "flags": [
+    { "key": "checkout-v2", "enabled": false, "status": "completed" }
+  ]
+}

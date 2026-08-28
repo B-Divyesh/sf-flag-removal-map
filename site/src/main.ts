@@ -17,215 +17,89 @@ deploy/flags.yaml: checkout-v2: false
 tests/checkout.test.ts: seedFlag("checkout-v2")`,
 };
 
-const statusNames: Record<Classification, string> = {
-  keep: "Keep on the map",
-  remove: "Removal candidate",
-  review: "Review evidence",
-};
+const names: Record<Classification, string> = { keep: "Keep", remove: "Removal candidate", review: "Review evidence" };
+
+function focusRoute(): void {
+  const h1 = document.querySelector<HTMLElement>("h1");
+  const notice = document.querySelector<HTMLElement>("#route-announcement");
+  if (h1) { h1.tabIndex = -1; h1.focus({ preventScroll: true }); }
+  if (notice) notice.textContent = document.title;
+}
 
 function configureTheme(): void {
   const button = document.querySelector<HTMLButtonElement>("#theme-toggle");
   if (!button) return;
   const label = button.querySelector<HTMLElement>(".theme-label");
-  const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
-
-  const isDark = (): boolean =>
-    document.documentElement.dataset.theme === "dark" ||
-    (!document.documentElement.dataset.theme && systemDark.matches);
-
-  const update = (): void => {
-    const dark = isDark();
-    button.setAttribute("aria-pressed", String(dark));
-    if (label) label.textContent = dark ? "Day map" : "Night map";
+  const media = matchMedia("(prefers-color-scheme: dark)");
+  const dark = () => document.documentElement.dataset.theme === "dark" || (!document.documentElement.dataset.theme && media.matches);
+  const update = () => {
+    const value = dark();
+    button.setAttribute("aria-pressed", String(value));
+    button.setAttribute("aria-label", value ? "Use light theme" : "Use dark theme");
+    if (label) label.textContent = value ? "Use light theme" : "Use dark theme";
   };
-
-  button.addEventListener("click", () => {
-    document.documentElement.dataset.theme = isDark() ? "light" : "dark";
-    update();
-  });
-  systemDark.addEventListener("change", update);
-  update();
+  button.addEventListener("click", () => { document.documentElement.dataset.theme = dark() ? "light" : "dark"; update(); });
+  media.addEventListener("change", update); update();
 }
 
-function configureOfflineState(): void {
+function configureOffline(): void {
   const bar = document.querySelector<HTMLElement>("#offline-bar");
-  if (!bar) return;
-  const update = (): void => {
-    bar.hidden = navigator.onLine;
-  };
-  window.addEventListener("online", update);
-  window.addEventListener("offline", update);
-  update();
+  const update = () => { if (bar) bar.hidden = navigator.onLine; };
+  addEventListener("online", update); addEventListener("offline", update); update();
 }
 
-function element<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  text?: string,
-  className?: string,
-): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  if (text) node.textContent = text;
-  if (className) node.className = className;
-  return node;
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string): HTMLElementTagNameMap[K] {
+  const node = document.createElement(tag); if (text) node.textContent = text; if (className) node.className = className; return node;
 }
 
-function renderError(container: HTMLElement, message: string): void {
-  container.replaceChildren();
-  const error = element("div", undefined, "result-error");
-  error.setAttribute("role", "alert");
-  error.append(
-    element("strong", "The survey could not run."),
-    element("p", `${message} Check the JSON and try again.`),
-  );
-  container.append(error);
-  container.hidden = false;
+function renderResult(container: HTMLElement, classification: Classification, key: string, reasons: string[], references: string[]): void {
+  container.replaceChildren(el("p", `FLAG / ${key}`, "result-kicker"));
+  container.append(el("h2", names[classification], `result-status ${classification}`));
+  container.append(el("h3", "Evidence"));
+  const evidence = el("ul"); reasons.forEach((reason) => evidence.append(el("li", reason))); container.append(evidence);
+  container.append(el("h3", `References / ${references.length}`));
+  if (references.length) { const list = el("ol", undefined, "reference-list"); references.forEach((reference) => list.append(el("li", reference))); container.append(list); }
+  else container.append(el("p", "No exact matches appear in this sample. Check other repositories, generated files, and runtime configuration."));
+  container.append(el("h3", "Human checks"));
+  const checks = el("ul");
+  (classification === "keep" ? ["Do not remove the flag while its provider status is enabled or usage is recorded.", "Confirm whether the rollout is complete.", "Run this again after a usage period that includes normal traffic."] : ["Confirm owner and intended final variation.", "Record the rollback plan before removing references.", "Deploy and monitor before deleting the provider flag."]).forEach((step) => checks.append(el("li", step)));
+  container.append(checks); container.hidden = false;
 }
 
-function renderResult(
-  container: HTMLElement,
-  classification: Classification,
-  key: string,
-  reasons: string[],
-  references: string[],
-): void {
-  container.replaceChildren();
-  container.append(element("p", `FLAG / ${key}`, "result-kicker"));
-  const status = element("h3", statusNames[classification], `result-status ${classification}`);
-  container.append(status);
-
-  container.append(element("h4", "Evidence readout"));
-  const evidenceList = element("ul");
-  reasons.forEach((reason) => evidenceList.append(element("li", reason)));
-  container.append(evidenceList);
-
-  container.append(element("h4", `Mapped references / ${references.length}`));
-  if (references.length) {
-    const referenceList = element("ol", undefined, "reference-list");
-    references.forEach((reference) => {
-      const item = element("li");
-      item.append(element("code", reference));
-      referenceList.append(item);
-    });
-    container.append(referenceList);
-  } else {
-    container.append(element("p", "No literal references in this snapshot. Check other repositories, generated files, and runtime configuration."));
-  }
-
-  container.append(element("h4", "Next field checks"));
-  const checks = element("ul");
-  const steps = classification === "keep"
-    ? ["Do not remove while the provider or evaluation evidence is active.", "Confirm whether the rollout is actually complete.", "Repeat the survey after a representative observation window."]
-    : ["Confirm owner and intended final variation.", "Record rollback before simplifying references.", "Deploy and monitor before deleting the provider flag."];
-  steps.forEach((step) => checks.append(element("li", step)));
-  container.append(checks);
-  container.hidden = false;
+function classify(): { classification: Classification; key: string; reasons: string[]; references: string[] } {
+  const provider = JSON.parse(document.querySelector<HTMLTextAreaElement>("#provider-json")!.value) as Record<string, unknown>;
+  const usage = JSON.parse(document.querySelector<HTMLTextAreaElement>("#evaluation-json")!.value) as Record<string, unknown>;
+  const source = document.querySelector<HTMLTextAreaElement>("#source-snapshot")!.value;
+  const key = typeof provider.key === "string" ? provider.key.trim() : "";
+  if (!key) throw new Error("Provider export needs a non-empty string key.");
+  if (provider.enabled !== undefined && typeof provider.enabled !== "boolean") throw new Error("Provider enabled must be true or false.");
+  const count = usage.count; const days = usage.window_days;
+  if (typeof count !== "number" || count < 0 || !Number.isInteger(count)) throw new Error("Evaluation count must be a non-negative integer.");
+  if (typeof days !== "number" || days <= 0 || !Number.isInteger(days)) throw new Error("Usage report days must be a positive number.");
+  const status = typeof provider.status === "string" ? provider.status.toLowerCase() : "";
+  const active = provider.enabled === true || ["active", "live", "running", "enabled"].includes(status);
+  const complete = provider.enabled === false || ["completed", "complete", "archived", "disabled", "off", "removed"].includes(status);
+  const references = source.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.includes(key));
+  if (active) return { classification: "keep", key, references, reasons: ["The provider marks this flag enabled."] };
+  if (count > 0) return { classification: "keep", key, references, reasons: [`${count} evaluations appear in the dated usage report.`] };
+  if (complete) return { classification: "remove", key, references, reasons: ["The provider marks this flag completed.", `Zero evaluations were observed over ${days} days; that supports review but does not prove safety.`] };
+  return { classification: "review", key, references, reasons: ["The provider status is missing or unclear.", "Missing or unclear evidence requires human review."] };
 }
 
 function configureDemo(): void {
-  const form = document.querySelector<HTMLFormElement>("#demo-form");
-  const providerInput = document.querySelector<HTMLTextAreaElement>("#provider-json");
-  const evaluationInput = document.querySelector<HTMLTextAreaElement>("#evaluation-json");
-  const sourceInput = document.querySelector<HTMLTextAreaElement>("#source-snapshot");
-  const panel = document.querySelector<HTMLElement>("#result-panel");
-  const result = document.querySelector<HTMLElement>("#demo-result");
-  const empty = document.querySelector<HTMLElement>("#empty-result");
-  const reset = document.querySelector<HTMLButtonElement>("#reset-demo");
-  if (!form || !providerInput || !evaluationInput || !sourceInput || !panel || !result || !empty || !reset) return;
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    panel.setAttribute("aria-busy", "true");
-    empty.hidden = true;
-    result.hidden = true;
-
-    const run = (): void => {
-      try {
-        const provider = JSON.parse(providerInput.value) as Record<string, unknown>;
-        const evaluation = evaluationInput.value.trim()
-          ? JSON.parse(evaluationInput.value) as Record<string, unknown>
-          : {};
-        const key = typeof provider.key === "string" ? provider.key.trim() : "";
-        if (!key) throw new Error("Provider export needs a non-empty string key.");
-        if (provider.enabled !== undefined && typeof provider.enabled !== "boolean") {
-          throw new Error("Provider enabled must be true or false.");
-        }
-        const count = evaluation.count;
-        const windowDays = evaluation.window_days;
-        if (count !== undefined && (typeof count !== "number" || count < 0 || !Number.isInteger(count))) {
-          throw new Error("Evaluation count must be a non-negative integer.");
-        }
-        if (windowDays !== undefined && (typeof windowDays !== "number" || windowDays <= 0)) {
-          throw new Error("Observation window must be a positive number of days.");
-        }
-
-        const status = typeof provider.status === "string" ? provider.status.toLowerCase() : "";
-        const active = provider.enabled === true || ["active", "live", "running", "enabled"].includes(status);
-        const completed = provider.enabled === false || ["completed", "complete", "archived", "disabled", "off", "removed"].includes(status);
-        let classification: Classification = "review";
-        const reasons: string[] = [];
-
-        if (active) {
-          classification = "keep";
-          reasons.push("Provider export marks the flag active or enabled.");
-        } else if (typeof count === "number" && count > 0) {
-          classification = "keep";
-          reasons.push(`${count} evaluations are present in the supplied evidence.`);
-        } else if (completed && count === 0 && typeof windowDays === "number") {
-          classification = "remove";
-          reasons.push("Provider export explicitly suggests completion.");
-          reasons.push(`Zero evaluations were observed over ${windowDays} days; that supports review but does not prove safety.`);
-        } else {
-          reasons.push("Provider completion and a bounded zero-evaluation window are not both established.");
-          reasons.push("Missing or ambiguous evidence always routes to human review.");
-        }
-
-        const references = sourceInput.value
-          .split(/\r?\n/)
-          .map((line) => line.trim())
-          .filter((line) => line.includes(key));
-        renderResult(result, classification, key, reasons, references);
-      } catch (error) {
-        renderError(result, error instanceof Error ? error.message : "The input is invalid.");
-      } finally {
-        panel.setAttribute("aria-busy", "false");
-      }
-    };
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) run();
-    else window.setTimeout(run, 180);
-  });
-
-  reset.addEventListener("click", () => {
-    providerInput.value = examples.provider;
-    evaluationInput.value = examples.evaluation;
-    sourceInput.value = examples.source;
-    result.hidden = true;
-    result.replaceChildren();
-    empty.hidden = false;
-    providerInput.focus();
-  });
+  const form = document.querySelector<HTMLFormElement>("#demo-form"); const result = document.querySelector<HTMLElement>("#demo-result");
+  const reset = document.querySelector<HTMLButtonElement>("#reset-demo"); const panel = document.querySelector<HTMLElement>("#result-panel");
+  if (!form || !result || !reset || !panel) return;
+  const run = () => { try { const output = classify(); renderResult(result, output.classification, output.key, output.reasons, output.references); } catch (error) { result.replaceChildren(el("div", `The sample could not be classified. ${error instanceof Error ? error.message : "Check the JSON and try again."}`, "result-error")); result.hidden = false; } };
+  form.addEventListener("submit", (event) => { event.preventDefault(); panel.setAttribute("aria-busy", "true"); if (matchMedia("(prefers-reduced-motion: reduce)").matches) run(); else setTimeout(run, 160); panel.setAttribute("aria-busy", "false"); });
+  reset.addEventListener("click", () => { document.querySelector<HTMLTextAreaElement>("#provider-json")!.value = examples.provider; document.querySelector<HTMLTextAreaElement>("#evaluation-json")!.value = examples.evaluation; document.querySelector<HTMLTextAreaElement>("#source-snapshot")!.value = examples.source; run(); document.querySelector<HTMLTextAreaElement>("#provider-json")!.focus(); });
+  sessionStorage.setItem("demo:flag-removal-map", "active"); run();
+  document.querySelector<HTMLAnchorElement>("#start-real")?.addEventListener("click", () => sessionStorage.removeItem("demo:flag-removal-map"));
 }
 
-function configureCopy(): void {
-  const button = document.querySelector<HTMLButtonElement>("#copy-command");
-  const command = document.querySelector<HTMLElement>(".command code");
-  if (!button || !command) return;
-  button.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(command.textContent ?? "");
-      button.textContent = "Copied";
-    } catch {
-      button.textContent = "Select text";
-    }
-    window.setTimeout(() => { button.textContent = "Copy"; }, 1800);
-  });
-}
+function configureCopy(): void { const button = document.querySelector<HTMLButtonElement>("#copy-command"); const command = document.querySelector<HTMLElement>(".command code"); if (!button || !command) return; button.addEventListener("click", async () => { try { await navigator.clipboard.writeText(command.textContent ?? ""); button.textContent = "Install command copied"; } catch { button.textContent = "Select install command"; } setTimeout(() => { button.textContent = "Copy install command"; }, 1800); }); }
 
-configureTheme();
-configureOfflineState();
-configureDemo();
-configureCopy();
-
-if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => undefined));
-}
+if (location.pathname === "/" && new URLSearchParams(location.search).get("demo") === "1") location.replace("/demo/");
+configureTheme(); configureOffline(); configureDemo(); configureCopy();
+if (location.pathname !== "/") requestAnimationFrame(focusRoute);
+if ("serviceWorker" in navigator && import.meta.env.PROD) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => undefined));

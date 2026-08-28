@@ -1,162 +1,25 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f3f0e6" />
-    <meta name="description" content="Map feature-flag evidence and code references into a conservative, offline removal plan." />
-    <title>Flag Removal Map — survey before you delete</title>
-    <link rel="icon" href="/mark.svg" type="image/svg+xml" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="preload" href="/topographic-route.webp" as="image" type="image/webp" imagesrcset="/topographic-route-600.webp 600w, /topographic-route.webp 1200w" imagesizes="(max-width: 620px) calc(100vw - 48px), (max-width: 900px) calc(100vw - 80px), 52vw" fetchpriority="high" />
-    <script type="module" src="/src/main.ts"></script>
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f3f0e6" /><meta name="description" content="A local CLI for engineering teams reviewing completed feature flags before removal." />
+    <title>Flag Removal Map — review completed flags</title><link rel="canonical" href="https://flag-removal-map.sociobot.in/" />
+    <meta property="og:type" content="website" /><meta property="og:title" content="Flag Removal Map — review completed flags" /><meta property="og:description" content="Review completed feature flags before removal." /><meta property="og:image" content="https://flag-removal-map.sociobot.in/social-card.png" />
+    <meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="Flag Removal Map — review completed flags" /><meta name="twitter:description" content="Review completed feature flags before removal." /><meta name="twitter:image" content="https://flag-removal-map.sociobot.in/social-card.png" />
+    <link rel="icon" href="/mark.svg" type="image/svg+xml" /><link rel="apple-touch-icon" href="/apple-touch-icon.png" /><link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preload" href="/topographic-route.webp" as="image" type="image/webp" fetchpriority="high" /><script type="module" src="/src/main.ts"></script>
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to main content</a>
-    <div class="offline-bar" id="offline-bar" role="status" hidden>
-      Offline field mode — this page and demo still work locally.
-    </div>
-    <header class="site-header">
-      <a class="brand" href="/" aria-label="Flag Removal Map home">
-        <svg aria-hidden="true" viewBox="0 0 32 32" width="32" height="32"><path d="M5 26V6h15l7 6-7 6H9v8z"/><path d="M9 10h10l3 2-3 2H9z"/></svg>
-        <span>Flag Removal Map</span>
-      </a>
-      <nav aria-label="Primary navigation">
-        <a href="#demo">Field demo</a>
-        <a href="#install">Install</a>
-        <a href="https://github.com/B-Divyesh/sf-flag-removal-map">Source</a>
-        <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Switch color theme" aria-pressed="false">
-          <span aria-hidden="true">◐</span><span class="theme-label">Night map</span>
-        </button>
-      </nav>
-    </header>
-
+    <a class="skip-link" href="#main">Skip to main content</a><p class="sr-only" id="route-announcement" aria-live="polite"></p>
+    <div class="offline-bar" id="offline-bar" role="status" hidden>You are offline. This page and the sample still work.</div>
+    <header class="site-header"><a class="brand" href="/" aria-label="Flag Removal Map home"><svg aria-hidden="true" viewBox="0 0 32 32" width="32" height="32"><path d="M5 26V6h15l7 6-7 6H9v8z"/><path d="M9 10h10l3 2-3 2H9z"/></svg><span>Flag Removal Map</span></a><nav aria-label="Primary navigation"><a href="/demo/">Demo</a><a href="#install">Install</a><a href="/privacy/">Privacy</a><button class="theme-toggle" type="button" id="theme-toggle" aria-label="Use dark theme" aria-pressed="false"><span aria-hidden="true">◐</span><span class="theme-label">Use dark theme</span></button></nav></header>
     <main id="main">
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-copy">
-          <p class="eyebrow">FIELD NOTE 01 / FEATURE-FLAG DEBT</p>
-          <h1 id="hero-title">Survey every trace before you remove the flag.</h1>
-          <p class="lede">Join provider state, bounded evaluation evidence, and literal references across your repositories. Get a reviewable cleanup route—not a false promise that “zero” means safe.</p>
-          <div class="hero-actions">
-            <a class="button primary" href="#install">Install the CLI <span aria-hidden="true">↓</span></a>
-            <a class="button secondary" href="#demo">Run the field demo</a>
-          </div>
-          <ul class="trust-line" aria-label="Product properties">
-            <li>Offline</li><li>Read-only</li><li>No telemetry</li><li>MIT</li>
-          </ul>
-        </div>
-        <figure class="hero-map">
-          <img src="/topographic-route.webp" srcset="/topographic-route-600.webp 600w, /topographic-route.webp 1200w" sizes="(max-width: 620px) calc(100vw - 48px), (max-width: 900px) calc(100vw - 80px), 52vw" width="1200" height="800" alt="An abstract topographic repository map with three evidence markers joined by a red survey route." fetchpriority="high" />
-          <figcaption><span>47° CODE</span><span>3 evidence stations</span><span>Route requires review</span></figcaption>
-        </figure>
-      </section>
-
-      <section class="survey-strip" aria-label="How the survey works">
-        <ol>
-          <li><span class="station">01</span><div><strong>Inventory</strong><span>Read provider export</span></div></li>
-          <li><span class="station">02</span><div><strong>Cross-check</strong><span>Join activity + references</span></div></li>
-          <li><span class="station">03</span><div><strong>Route</strong><span>Write the removal plan</span></div></li>
-        </ol>
-      </section>
-
-      <section class="section problem" aria-labelledby="problem-title">
-        <div class="section-label">THE TERRAIN</div>
-        <div>
-          <h2 id="problem-title">Creation date is not removal evidence.</h2>
-          <p>Provider dashboards can tell you that a flag looks stale. Repository search can tell you where a key appears. Neither alone tells a small team whether the cleanup route is complete.</p>
-        </div>
-        <blockquote>
-          <p>“No evaluations observed” is a clue. It is never proof that a code path is dead.</p>
-          <cite>Built-in safety rule</cite>
-        </blockquote>
-      </section>
-
-      <section class="section demo-section" id="demo" aria-labelledby="demo-title">
-        <div class="section-label">FIELD DEMO / LOCAL ONLY</div>
-        <div class="demo-heading">
-          <div><h2 id="demo-title">Plot one flag before touching code.</h2><p>Change the offline sample inputs and see the same decision rule the CLI applies. Nothing leaves this browser.</p></div>
-          <button class="text-button" type="button" id="reset-demo">Reset sample</button>
-        </div>
-        <div class="demo-grid">
-          <form class="field-notebook" id="demo-form" novalidate>
-            <div class="field-group">
-              <label for="provider-json"><span>01</span> Provider export</label>
-              <textarea id="provider-json" name="provider" rows="7" spellcheck="false" aria-describedby="provider-help">{
-  "key": "checkout-v2",
-  "enabled": false,
-  "status": "completed"
-}</textarea>
-              <small id="provider-help">One normalized flag object.</small>
-            </div>
-            <div class="field-group">
-              <label for="evaluation-json"><span>02</span> Evaluation evidence</label>
-              <textarea id="evaluation-json" name="evaluation" rows="6" spellcheck="false" aria-describedby="evaluation-help">{
-  "count": 0,
-  "window_days": 30
-}</textarea>
-              <small id="evaluation-help">Zero needs a bounded observation window.</small>
-            </div>
-            <div class="field-group full">
-              <label for="source-snapshot"><span>03</span> Repository snapshot</label>
-              <textarea id="source-snapshot" name="source" rows="4" spellcheck="false" aria-describedby="source-help">src/checkout.ts: client.boolVariation("checkout-v2", false)
-deploy/flags.yaml: checkout-v2: false
-tests/checkout.test.ts: seedFlag("checkout-v2")</textarea>
-              <small id="source-help">Paste file-name and source lines for this browser demo; the CLI scans real directories.</small>
-            </div>
-            <button class="button primary survey-button" type="submit">Survey this flag <span aria-hidden="true">→</span></button>
-          </form>
-
-          <div class="result-panel" id="result-panel" aria-live="polite" aria-busy="false">
-            <div class="empty-result" id="empty-result">
-              <span class="map-pin" aria-hidden="true"></span>
-              <h3>Evidence station ready</h3>
-              <p>Run the survey to classify the flag and map its visible references.</p>
-            </div>
-            <div id="demo-result" hidden></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section install-section" id="install" aria-labelledby="install-title">
-        <div class="section-label">PACK THE KIT</div>
-        <div class="install-copy">
-          <h2 id="install-title">One binary. Offline inputs. Reviewable output.</h2>
-          <p>Build from source today. Release binaries can be dropped into any CI job without a service account or network dependency.</p>
-          <div class="command" role="group" aria-label="Install command">
-            <code tabindex="0" aria-label="Install command; scroll horizontally to read the full line">cargo install --git https://github.com/B-Divyesh/sf-flag-removal-map</code>
-            <button type="button" id="copy-command">Copy</button>
-          </div>
-          <pre aria-label="Example command"><code>flag-removal-map \
-  --flags ./flags.json \
-  --evaluations ./evaluations.json \
-  --repo ./apps --repo ./packages \
-  --out ./flag-removal-plan.md</code></pre>
-        </div>
-        <div class="output-key" aria-label="Classification legend">
-          <h3>Map legend</h3>
-          <dl>
-            <div><dt><span class="legend keep" aria-hidden="true"></span>Keep</dt><dd>Active provider state or observed evaluations.</dd></div>
-            <div><dt><span class="legend remove" aria-hidden="true"></span>Remove</dt><dd>Completed state plus bounded zero evidence. Still human-reviewed.</dd></div>
-            <div><dt><span class="legend review" aria-hidden="true"></span>Review</dt><dd>Missing, contradictory, or incomplete evidence.</dd></div>
-          </dl>
-        </div>
-      </section>
-
-      <section class="section limits" aria-labelledby="limits-title">
-        <div class="section-label">KNOWN BOUNDARIES</div>
-        <h2 id="limits-title">Conservative by design.</h2>
-        <ul>
-          <li><strong>No automatic edits.</strong><span>You decide what each reference means.</span></li>
-          <li><strong>No provider calls.</strong><span>Exports and tokens remain under your control.</span></li>
-          <li><strong>No “safe” badge.</strong><span>The plan records evidence and the human checks still required.</span></li>
-        </ul>
-      </section>
+      <section class="hero" aria-labelledby="hero-title"><div class="hero-copy"><p class="eyebrow">FIELD NOTE 01 / FEATURE-FLAG CLEANUP</p><h1 id="hero-title">Review completed flags before removal.</h1><p class="lede">For small engineering teams retiring completed flags, combine provider status, recent usage, and code references into one review plan.</p><div class="hero-actions"><a class="button primary" href="/demo/">Try it with sample data <span aria-hidden="true">→</span></a><a class="button secondary" href="/demo/#result-panel">See a completed removal plan</a></div><ul class="trust-line" aria-label="Product facts"><li>Runs from local files</li><li>Does not edit repositories</li><li>No accounts</li></ul></div><figure class="hero-map"><img src="/topographic-route.webp" width="1200" height="800" alt="An abstract topographic repository map showing three evidence markers joined by a red route." fetchpriority="high" /><figcaption><span>47° CODE</span><span>3 sample references</span><span>Human review required</span></figcaption></figure></section>
+      <section class="survey-strip" aria-label="How it works"><ol><li><span class="station">01</span><div><strong>Read</strong><span>Use a provider export</span></div></li><li><span class="station">02</span><div><strong>Match</strong><span>Check usage and references</span></div></li><li><span class="station">03</span><div><strong>Review</strong><span>Write a removal plan</span></div></li></ol></section>
+      <section class="section problem" aria-labelledby="problem-title"><div class="section-label">WHY MORE EVIDENCE IS NEEDED</div><div><h2 id="problem-title">A flag’s age is not removal evidence.</h2><p>A provider export and repository search answer different questions. Compare both before changing a completed flag.</p></div><blockquote><p>Zero recent evaluations can support review. It never proves a flag is safe to remove.</p><cite>Built-in decision rule</cite></blockquote></section>
+      <section class="section install-section" id="install" aria-labelledby="install-title"><div class="section-label">INSTALL THE CLI</div><div class="install-copy"><h2 id="install-title">Build a local removal plan.</h2><p>Build and install the CLI from source.</p><div class="command" role="group" aria-label="Install command"><code tabindex="0">cargo install --path .</code><button type="button" id="copy-command">Copy install command</button></div><pre aria-label="Example command"><code>flag-removal-map --flags ./flags.json --evaluations ./evaluations.json --repo ./apps --out ./removal-plan.md</code></pre><h3>Run the bundled CLI demo</h3><img class="terminal-recording" src="/terminal-demo.svg" width="960" height="300" alt="Terminal output from flag-removal-map demo showing one removal candidate, three references, and a temporary plan path." /></div><div class="output-key" aria-label="Classification meanings"><h3>Classification meanings</h3><dl><div><dt><span class="legend keep" aria-hidden="true"></span>Keep</dt><dd>Enabled status or recorded usage.</dd></div><div><dt><span class="legend remove" aria-hidden="true"></span>Removal candidate</dt><dd>Completed status and dated zero usage. Review is still required.</dd></div><div><dt><span class="legend review" aria-hidden="true"></span>Review</dt><dd>Missing, conflicting, or incomplete evidence.</dd></div></dl></div></section>
+      <section class="section limits" aria-labelledby="limits-title"><div class="section-label">PRODUCT BOUNDARIES</div><h2 id="limits-title">What the CLI will not do.</h2><ul><li><strong>It does not edit code.</strong><span>You decide what each reference means.</span></li><li><strong>It does not call providers.</strong><span>The CLI reads the export files you provide.</span></li><li><strong>It does not certify safety.</strong><span>The plan lists evidence and human checks.</span></li></ul></section>
     </main>
-
-    <footer>
-      <div><span class="brand-small">Flag Removal Map</span><p>A small, honest tool for the last mile of a rollout.</p></div>
-      <div class="footer-links"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-flag-removal-map">GitHub</a></div>
-      <p class="coordinates">FIELD REV 0.1.0 · 2026</p>
-    </footer>
+    <footer><div><span class="brand-small">Flag Removal Map</span><p>A local CLI for reviewing completed feature flags.</p></div><div class="footer-links"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-flag-removal-map" aria-label="Source on GitHub (external)">Source on GitHub (external)</a></div><p class="coordinates">Built by Param Factory · v0.1.0 · build 7cde0dd</p></footer>
   </body>
 </html>

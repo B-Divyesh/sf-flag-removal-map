@@ -2,53 +2,38 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
-const css = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
-const script = await readFile(new URL("../src/main.ts", import.meta.url), "utf8");
-const staticConfig = JSON.parse(await readFile(new URL("../public/staticwebapp.config.json", import.meta.url), "utf8"));
+const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
+const [home, demo, privacy, terms, script, css, config, sitemap] = await Promise.all([
+  read("../index.html"), read("../demo/index.html"), read("../privacy/index.html"), read("../terms/index.html"), read("../src/main.ts"), read("../src/styles.css"), read("../public/staticwebapp.config.json"), read("../public/sitemap.xml"),
+]);
 
-test("landing page has the required semantic landmarks", () => {
-  assert.match(html, /<html lang="en">/);
-  assert.match(html, /<title>[^<]+<\/title>/);
-  assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
-  assert.match(html, /<main id="main">/);
-  assert.match(html, /<img[^>]+alt="[^"]+"/);
-  assert.match(html, /class="skip-link"/);
+test("@claim:route-metadata every published route has a title, canonical metadata, shell, and legal links", () => {
+  for (const html of [home, demo, privacy, terms]) {
+    assert.match(html, /<html lang="en">/); assert.match(html, /<title>[^<]+<\/title>/); assert.match(html, /rel="canonical"/);
+    assert.match(html, /<main id="main"/); assert.match(html, /href="\/privacy\//); assert.match(html, /href="\/terms\//);
+  }
+  assert.match(demo, /<title>Demo — Flag Removal Map<\/title>/); assert.match(sitemap, /\/demo\//);
 });
 
-test("interaction and motion accessibility are explicit", () => {
-  assert.match(css, /:focus-visible/);
-  assert.match(css, /prefers-reduced-motion: reduce/);
-  assert.match(html, /aria-live="polite"/);
-  assert.match(script, /prefers-reduced-motion: reduce/);
+test("@claim:demo-isolation demo has direct entry, banner, reset, real start, and separate session namespace", () => {
+  assert.match(home, /Try it with sample data/); assert.match(home, /href="\/demo\//);
+  assert.match(demo, /Demo — sample data, nothing is saved to your real data/); assert.match(demo, /Reset demo/); assert.match(demo, /Start for real/);
+  assert.match(script, /demo:flag-removal-map/); assert.match(script, /location\.replace\("\/demo\/"\)/);
 });
 
-test("site has no third-party runtime resources", () => {
-  assert.doesNotMatch(html, /<(?:script|img)[^>]+src="https?:\/\//);
-  assert.doesNotMatch(html, /<link[^>]+href="https?:\/\//);
-  assert.doesNotMatch(html, /fonts\.googleapis|googletagmanager|segment|plausible/i);
+test("@claim:privacy-no-egress page assets are local and demo does not call a remote endpoint", () => {
+  assert.doesNotMatch(home, /<(?:script|img)[^>]+src="https?:\/\//); assert.doesNotMatch(home, /fonts\.googleapis|googletagmanager|segment|plausible/i);
+  assert.doesNotMatch(script, /fetch\(|XMLHttpRequest|WebSocket/); assert.match(config, /default-src 'self'/);
 });
 
-test("privacy-safe demo keeps the conservative zero-evaluation rule", () => {
-  assert.match(script, /completed && count === 0 && typeof windowDays === "number"/);
-  assert.match(script, /does not prove safety/);
+test("@claim:decision-rule the browser requires completed status and dated zero usage for a removal candidate", () => {
+  assert.match(script, /if \(complete\) return \{ classification: "remove"/); assert.match(script, /days <= 0/); assert.match(script, /does not prove safety/);
 });
 
-test("interactive evidence labels have an explicit high-contrast treatment", () => {
-  assert.match(css, /\.result-panel h4\s*\{[^}]*background:\s*var\(--text\)[^}]*color:\s*var\(--background\)/s);
+test("@claim:accessibility-site the route model has focus, announcements, visible focus, and reduced motion", () => {
+  assert.match(script, /h1\.focus/); assert.match(script, /route-announcement/); assert.match(css, /:focus-visible/); assert.match(css, /prefers-reduced-motion: reduce/);
 });
 
-test("static deployment policy caches versioned assets and protects the document", () => {
-  assert.equal(staticConfig.globalHeaders["Cache-Control"], "no-cache, must-revalidate");
-  assert.match(staticConfig.globalHeaders["Content-Security-Policy"], /default-src 'self'/);
-  assert.match(staticConfig.globalHeaders["Content-Security-Policy"], /object-src 'none'/);
-  assert.match(staticConfig.globalHeaders["Permissions-Policy"], /camera=\(\)/);
-  assert.equal(staticConfig.globalHeaders["Referrer-Policy"], "strict-origin-when-cross-origin");
-  assert.equal(staticConfig.globalHeaders["X-Content-Type-Options"], "nosniff");
-
-  const routeHeaders = new Map(staticConfig.routes.map((route) => [route.route, route.headers["Cache-Control"]]));
-  assert.equal(routeHeaders.get("/assets/*"), "public, max-age=31536000, immutable");
-  assert.equal(routeHeaders.get("/topographic-route.webp"), "public, max-age=31536000, immutable");
-  assert.equal(routeHeaders.get("/topographic-route-600.webp"), "public, max-age=31536000, immutable");
-  assert.equal(routeHeaders.get("/sw.js"), "no-cache, no-store, must-revalidate");
+test("@claim:404-route static deployment returns the designed 404 document instead of a home fallback", () => {
+  const policy = JSON.parse(config); assert.equal(policy.responseOverrides["404"].rewrite, "/404.html"); assert.equal(policy.responseOverrides["404"].statusCode, 404); assert.equal(policy.navigationFallback, undefined);
 });

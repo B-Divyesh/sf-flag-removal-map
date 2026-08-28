@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="300" viewBox="0 0 960 300" role="img" aria-labelledby="title desc">
+  <title id="title">Flag Removal Map CLI demo</title><desc id="desc">A terminal shows the bundled demo command creating one removal candidate and three references in a temporary directory.</desc>
+  <rect width="960" height="300" fill="#18231e"/><path d="M0 48h960" stroke="#57635d"/><circle cx="30" cy="24" r="7" fill="#ff8b70"/><circle cx="54" cy="24" r="7" fill="#f2be62"/><circle cx="78" cy="24" r="7" fill="#72c89a"/>
+  <g fill="#f2efe4" font-family="monospace" font-size="21"><text x="32" y="94" fill="#ff8b70">$</text><text x="58" y="94">flag-removal-map demo</text><text x="32" y="142">Sample complete: 1 removal candidate, 3 references.</text><text x="32" y="190">Temporary sample and plan: /tmp/flag-removal-map-demo-…</text><text x="32" y="238">Plan: /tmp/flag-removal-map-demo-…/removal-plan.md</text><text x="32" y="276" fill="#72c89a">✓ No repository files changed</text></g>
+</svg>
