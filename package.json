@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "vite --config site/vite.config.ts",
     "test": "cargo test --all-targets && cargo test --doc && npm run test:site && npm run test:browser",
-    "test:site": "node --test site/tests/site.test.mjs",
-    "test:browser": "npm run build:site && node --test site/tests/browser.test.mjs",
+    "test:site": "node site/tests/run-tests.mjs site",
+    "test:browser": "npm run build:site && node site/tests/run-tests.mjs browser",
     "test:claims": "npm run test:site && npm run test:browser && cargo test --test cli",
     "lint": "cargo fmt --check && cargo clippy --all-targets -- -D warnings",
     "typecheck": "tsc --project site/tsconfig.json",

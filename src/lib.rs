@@ -417,7 +417,9 @@ fn classify(
     }
     if (flag.enabled == Some(false) || completed_state)
         && evaluation.is_some_and(|evidence| {
-            evidence.count == 0 && evidence.window_days.is_some_and(|days| days > 0)
+            evidence.count == 0
+                && evidence.window_days.is_some_and(|days| days > 0)
+                && evidence.as_of.as_deref().is_some_and(is_recent_observation)
         })
     {
         let evidence = evaluation.expect("checked above");
@@ -425,7 +427,7 @@ fn classify(
             Classification::Remove,
             vec![
                 "Provider export marks the flag completed, archived, or disabled.".into(),
-                format!("The supplied {}-day observation window reports zero evaluations; this supports review but does not prove safety.", evidence.window_days.unwrap_or_default()),
+                format!("The dated {}-day observation window ending {} reports zero evaluations; this supports review but does not prove safety.", evidence.window_days.unwrap_or_default(), evidence.as_of.as_deref().unwrap_or("not supplied")),
             ],
         );
     }
@@ -441,12 +443,93 @@ fn classify(
     } else {
         reasons.push("Provider state does not explicitly establish completion.".into());
     }
-    if evaluation.is_some_and(|evidence| evidence.count == 0 && evidence.window_days.is_none()) {
-        reasons.push("Zero evaluations were supplied without an observation window.".into());
+    if let Some(evidence) = evaluation {
+        if evidence.count == 0 && evidence.window_days.is_none() {
+            reasons.push("Zero evaluations were supplied without an observation window.".into());
+        }
+        if evidence.count == 0 && !evidence.as_of.as_deref().is_some_and(is_recent_observation) {
+            reasons.push(
+                "Zero evaluations need a valid observation end date from the last 90 days.".into(),
+            );
+        }
     } else if evaluation.is_none() {
         reasons.push("No evaluation evidence was supplied for this flag.".into());
     }
     (Classification::Review, reasons)
+}
+
+/// A zero count is only removal evidence when it has a real, recent end date.
+/// Accept a plain ISO date or an RFC 3339 timestamp; comparison is deliberately
+/// UTC-only so the CLI stays deterministic across local time zones.
+fn is_recent_observation(value: &str) -> bool {
+    let Some(days) = iso_date_days(value) else {
+        return false;
+    };
+    let today = unix_days_now();
+    days <= today + 1 && days >= today - 90
+}
+
+fn iso_date_days(value: &str) -> Option<i64> {
+    let date = value.get(..10)?;
+    let bytes = date.as_bytes();
+    if bytes.len() != 10 || bytes[4] != b'-' || bytes[7] != b'-' {
+        return None;
+    }
+    let year = date.get(..4)?.parse::<i64>().ok()?;
+    let month = date.get(5..7)?.parse::<u32>().ok()?;
+    let day = date.get(8..10)?.parse::<u32>().ok()?;
+    if !(1..=12).contains(&month) || day == 0 || day > days_in_month(year, month) {
+        return None;
+    }
+    Some(days_from_civil(year, month, day))
+}
+
+fn days_in_month(year: i64, month: u32) -> u32 {
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) => 29,
+        2 => 28,
+        _ => 0,
+    }
+}
+
+fn days_from_civil(year: i64, month: u32, day: u32) -> i64 {
+    // Howard Hinnant's public-domain civil calendar conversion, epoch 1970-01-01.
+    let year = year - i64::from(month <= 2);
+    let era = if year >= 0 { year } else { year - 399 } / 400;
+    let yoe = year - era * 400;
+    let month = i64::from(month);
+    let day = i64::from(day);
+    let doy = (153 * (month + if month > 2 { -3 } else { 9 }) + 2) / 5 + day - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    era * 146_097 + doe - 719_468
+}
+
+fn unix_days_now() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|duration| (duration.as_secs() / 86_400) as i64)
+        .unwrap_or(0)
+}
+
+/// Today's UTC ISO date, used only to seed the bundled sample at runtime.
+pub fn today_utc_date() -> String {
+    let (year, month, day) = civil_from_days(unix_days_now());
+    format!("{year:04}-{month:02}-{day:02}")
+}
+
+fn civil_from_days(days: i64) -> (i64, u32, u32) {
+    let z = days + 719_468;
+    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let year = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let month_prime = (5 * doy + 2) / 153;
+    let day = doy - (153 * month_prime + 2) / 5 + 1;
+    let month = month_prime + if month_prime < 10 { 3 } else { -9 };
+    (year + i64::from(month <= 2), month as u32, day as u32)
 }
 
 fn canonical_input_paths(options: &AnalysisOptions) -> HashSet<PathBuf> {
@@ -856,9 +939,27 @@ mod tests {
         let evidence = EvaluationEvidence {
             count: 0,
             window_days: Some(30),
-            as_of: None,
+            as_of: Some(today_utc_date()),
         };
         assert_eq!(classify(&flag, Some(&evidence)).0, Classification::Remove);
+    }
+
+    #[test]
+    fn dated_evidence_rejects_missing_invalid_and_stale_dates() {
+        let flag = ProviderFlag {
+            key: "old".into(),
+            name: None,
+            enabled: Some(false),
+            status: Some("completed".into()),
+        };
+        for as_of in [None, Some("not-a-date".into()), Some("2000-01-01".into())] {
+            let evidence = EvaluationEvidence {
+                count: 0,
+                window_days: Some(30),
+                as_of,
+            };
+            assert_eq!(classify(&flag, Some(&evidence)).0, Classification::Review);
+        }
     }
 
     #[test]
@@ -887,7 +988,10 @@ mod tests {
         .unwrap();
         fs::write(
             temp.path().join("eval.json"),
-            r#"{"window_days":30,"evaluations":{"checkout-v2":0}}"#,
+            format!(
+                r#"{{"as_of":"{}","window_days":30,"evaluations":{{"checkout-v2":0}}}}"#,
+                today_utc_date()
+            ),
         )
         .unwrap();
         fs::write(

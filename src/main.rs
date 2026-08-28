@@ -1,5 +1,5 @@
 use clap::{ArgAction, Parser};
-use flag_removal_map::{analyze, render_markdown, AnalysisOptions, Classification};
+use flag_removal_map::{analyze, render_markdown, today_utc_date, AnalysisOptions, Classification};
 use std::fs;
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -10,7 +10,7 @@ use std::process::ExitCode;
     version,
     about = "Map feature-flag evidence and repository references into a safe removal plan",
     long_about = "Reads offline provider/evaluation JSON, scans repositories for literal flag-key references, and emits a conservative cleanup plan. It never changes code or contacts a provider.",
-    after_help = "CLASSIFICATION\n  keep    Provider says active/enabled or evaluations are present\n  remove  Completed state plus a bounded zero-evaluation window (still requires review)\n  review  Missing, contradictory, or incomplete evidence\n\nEXIT CODES\n  0 analysis completed  2 invalid input  3 incomplete scan  4 --fail-on-review fired"
+    after_help = "CLASSIFICATION\n  keep    Provider says active/enabled or evaluations are present\n  remove  Completed state plus recent, dated zero evaluations (still requires review)\n  review  Missing, stale, contradictory, or incomplete evidence\n\nEXIT CODES\n  0 analysis completed  2 invalid input  3 incomplete scan  4 --fail-on-review found a flag needing review"
 )]
 struct Cli {
     /// Provider flag export JSON
@@ -84,8 +84,11 @@ fn run_demo() -> ExitCode {
         fs::create_dir_all(repository.join("tests")).map_err(|error| error.to_string())?;
         fs::write(&flags, include_str!("../examples/flags.json"))
             .map_err(|error| error.to_string())?;
-        fs::write(&evaluations, include_str!("../examples/evaluations.json"))
-            .map_err(|error| error.to_string())?;
+        fs::write(
+            &evaluations,
+            include_str!("../examples/evaluations.json").replace("SAMPLE_TODAY", &today_utc_date()),
+        )
+        .map_err(|error| error.to_string())?;
         fs::write(
             repository.join("checkout.ts"),
             include_str!("../examples/sample-repository/checkout.ts"),

@@ -19,4 +19,11 @@ export default defineConfig({
       },
     },
   },
+  plugins: [{
+    name: "build-coordinate",
+    transformIndexHtml(html) {
+      const build = (process.env.GITHUB_SHA ?? process.env.BUILD_ID ?? "local").slice(0, 7);
+      return html.replaceAll("%BUILD_ID%", build);
+    },
+  }],
 });

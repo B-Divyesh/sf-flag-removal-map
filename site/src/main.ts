@@ -2,6 +2,7 @@ import "./styles.css";
 
 type Classification = "keep" | "remove" | "review";
 
+const today = new Date().toISOString().slice(0, 10);
 const examples = {
   provider: `{
   "key": "checkout-v2",
@@ -10,7 +11,8 @@ const examples = {
 }`,
   evaluation: `{
   "count": 0,
-  "window_days": 30
+  "window_days": 30,
+  "as_of": "${today}T00:00:00Z"
 }`,
   source: `src/checkout.ts: client.boolVariation("checkout-v2", false)
 deploy/flags.yaml: checkout-v2: false
@@ -73,26 +75,35 @@ function classify(): { classification: Classification; key: string; reasons: str
   const key = typeof provider.key === "string" ? provider.key.trim() : "";
   if (!key) throw new Error("Provider export needs a non-empty string key.");
   if (provider.enabled !== undefined && typeof provider.enabled !== "boolean") throw new Error("Provider enabled must be true or false.");
-  const count = usage.count; const days = usage.window_days;
+  const count = usage.count; const days = usage.window_days; const asOf = usage.as_of ?? usage.asOf;
   if (typeof count !== "number" || count < 0 || !Number.isInteger(count)) throw new Error("Evaluation count must be a non-negative integer.");
   if (typeof days !== "number" || days <= 0 || !Number.isInteger(days)) throw new Error("Usage report days must be a positive number.");
+  const observedAt = typeof asOf === "string" ? Date.parse(asOf) : Number.NaN;
+  const ageDays = (Date.now() - observedAt) / 86_400_000;
+  const recentDate = Number.isFinite(observedAt) && ageDays >= -1 && ageDays <= 90;
   const status = typeof provider.status === "string" ? provider.status.toLowerCase() : "";
   const active = provider.enabled === true || ["active", "live", "running", "enabled"].includes(status);
   const complete = provider.enabled === false || ["completed", "complete", "archived", "disabled", "off", "removed"].includes(status);
   const references = source.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.includes(key));
   if (active) return { classification: "keep", key, references, reasons: ["The provider marks this flag enabled."] };
   if (count > 0) return { classification: "keep", key, references, reasons: [`${count} evaluations appear in the dated usage report.`] };
-  if (complete) return { classification: "remove", key, references, reasons: ["The provider marks this flag completed.", `Zero evaluations were observed over ${days} days; that supports review but does not prove safety.`] };
-  return { classification: "review", key, references, reasons: ["The provider status is missing or unclear.", "Missing or unclear evidence requires human review."] };
+  if (complete && count === 0 && recentDate) return { classification: "remove", key, references, reasons: ["The provider marks this flag completed.", `The dated ${days}-day usage report ending ${asOf} records zero evaluations; that supports review but does not prove safety.`] };
+  const reasons = [complete ? "The provider marks this flag completed, but removal evidence is incomplete." : "The provider status is missing or unclear."];
+  if (count === 0 && !recentDate) reasons.push("Zero evaluations need a valid observation end date from the last 90 days.");
+  else reasons.push("Missing or unclear evidence requires human review.");
+  return { classification: "review", key, references, reasons };
 }
 
 function configureDemo(): void {
   const form = document.querySelector<HTMLFormElement>("#demo-form"); const result = document.querySelector<HTMLElement>("#demo-result");
   const reset = document.querySelector<HTMLButtonElement>("#reset-demo"); const panel = document.querySelector<HTMLElement>("#result-panel");
   if (!form || !result || !reset || !panel) return;
-  const run = () => { try { const output = classify(); renderResult(result, output.classification, output.key, output.reasons, output.references); } catch (error) { result.replaceChildren(el("div", `The sample could not be classified. ${error instanceof Error ? error.message : "Check the JSON and try again."}`, "result-error")); result.hidden = false; } };
-  form.addEventListener("submit", (event) => { event.preventDefault(); panel.setAttribute("aria-busy", "true"); if (matchMedia("(prefers-reduced-motion: reduce)").matches) run(); else setTimeout(run, 160); panel.setAttribute("aria-busy", "false"); });
+  const run = () => { try { const output = classify(); renderResult(result, output.classification, output.key, output.reasons, output.references); } catch (error) { const message = el("div", `The sample could not be classified. ${error instanceof Error ? error.message : "Check the JSON and try again."}`, "result-error"); message.setAttribute("role", "alert"); result.replaceChildren(message); result.hidden = false; } finally { panel.setAttribute("aria-busy", "false"); } };
+  form.addEventListener("submit", (event) => { event.preventDefault(); panel.setAttribute("aria-busy", "true"); if (matchMedia("(prefers-reduced-motion: reduce)").matches) run(); else setTimeout(run, 160); });
   reset.addEventListener("click", () => { document.querySelector<HTMLTextAreaElement>("#provider-json")!.value = examples.provider; document.querySelector<HTMLTextAreaElement>("#evaluation-json")!.value = examples.evaluation; document.querySelector<HTMLTextAreaElement>("#source-snapshot")!.value = examples.source; run(); document.querySelector<HTMLTextAreaElement>("#provider-json")!.focus(); });
+  document.querySelector<HTMLTextAreaElement>("#provider-json")!.value = examples.provider;
+  document.querySelector<HTMLTextAreaElement>("#evaluation-json")!.value = examples.evaluation;
+  document.querySelector<HTMLTextAreaElement>("#source-snapshot")!.value = examples.source;
   sessionStorage.setItem("demo:flag-removal-map", "active"); run();
   document.querySelector<HTMLAnchorElement>("#start-real")?.addEventListener("click", () => sessionStorage.removeItem("demo:flag-removal-map"));
 }
@@ -101,5 +112,6 @@ function configureCopy(): void { const button = document.querySelector<HTMLButto
 
 if (location.pathname === "/" && new URLSearchParams(location.search).get("demo") === "1") location.replace("/demo/");
 configureTheme(); configureOffline(); configureDemo(); configureCopy();
-if (location.pathname !== "/") requestAnimationFrame(focusRoute);
+requestAnimationFrame(focusRoute);
+addEventListener("pageshow", () => requestAnimationFrame(focusRoute));
 if ("serviceWorker" in navigator && import.meta.env.PROD) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => undefined));
