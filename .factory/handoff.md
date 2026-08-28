@@ -1,10 +1,18 @@
-# Flag Removal Map — polish 5 handoff
+# Flag Removal Map — review 6 handoff
 
-- Work order: `flag-removal-map-polish-5`
-- Reviewed base: `d88e3ac1307f0aa93f6a0fb824f4b618db65464e`
+- Work order: `flag-removal-map-review-6`
+- Reviewed base: `f45a9a1b6d5d9676c54d77cadb3ad28315fcb702`
 - Repair commits: `eec98d3` (claim mapping) and `2353e81` (revision coordinates)
 - Live URL: <https://flag-removal-map.sociobot.in/>
-- Status: **accepted — no known gaps**
+- Status: **review failed — one blocking claim-evidence gap remains**
+
+## Review 6 result
+
+- Performed a fresh cold live review at 390 × 844 and 1440 × 900: first-read copy, the one-click demo, storage reset/discard, offline reload, route metadata, link crawl, route focus/back behavior, accessibility baseline, and visual identity.
+- Read review-1 through review-5, polish-1 through polish-5, the prior handoff, claims registry, demo contract, README, and design record. No product code was changed.
+- Created clean clone `/tmp/flag-removal-map-review6-clean.r8TXZP`; all 24 registry commands, `npm test`, and `npm run build` passed. The build emitted the release CLI and `dist/site/index.html`.
+- `/demo/` opened with a realistic completed removal candidate and three references. Reset worked; the live run only created `sessionStorage["demo:flag-removal-map"]`, and Start for real removed it. Offline reload, routes, metadata, 404, links, destination-H1 focus, mobile layout, and visual identity passed the exercised checks.
+- `F-6-1` reopens review-2 `F-2-4`: `demo-isolation`, `repository-read-only`, and `privacy-site` are still proved by source-text assertions rather than observable clean-sandbox tests. Replace them with the browser/storage, full-tree-plus-denied-egress CLI, and full-route browser privacy tests specified in `review-6.md`; then rerun every claim command and the complete review.
 
 ## What changed
 
@@ -37,4 +45,4 @@ Production deployment used the work-order static configuration (`npm ci && npm r
 
 ## Release handoff
 
-The ready-to-publish CLI package was verified by the `@claim:cargo-package` clean-sandbox test. Re-run `cargo package --allow-dirty` if a release artifact is needed; do not publish from this worker. The landing site and CLI remain local-first, deterministic, and free of provider/API/AI dependencies. No next step is required.
+The ready-to-publish CLI package was verified by the `@claim:cargo-package` clean-sandbox test. Re-run `cargo package --allow-dirty` if a release artifact is needed; do not publish from this worker. The landing site and CLI remain local-first, deterministic, and free of provider/API/AI dependencies. Review 6 requires the claim-test repairs listed above before acceptance.
