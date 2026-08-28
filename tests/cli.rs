@@ -89,6 +89,14 @@ fn dated_evidence_rule_has_cli_counterexamples() {
             "review",
         ),
         (
+            "malformed-suffix",
+            format!(
+                r#"{{"as_of":"{}garbageT00:00:00Z","window_days":30,"evaluations":{{"checkout-v2":0}}}}"#,
+                flag_removal_map::today_utc_date()
+            ),
+            "review",
+        ),
+        (
             "stale",
             r#"{"as_of":"2000-01-01","window_days":30,"evaluations":{"checkout-v2":0}}"#.into(),
             "review",

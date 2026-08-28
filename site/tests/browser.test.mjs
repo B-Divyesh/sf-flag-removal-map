@@ -41,10 +41,24 @@ test("@claim:accessible-interactions pass Axe, focus home, expose command scroll
   await page.goto(`${base}/demo/`, { waitUntil: "networkidle" }); await page.locator("#evaluation-json").fill('not json'); const submit = page.getByRole("button", { name: /classify sample flag/i }); await submit.click(); assert.equal(await page.locator("#result-panel").getAttribute("aria-busy"), "true"); await page.getByRole("alert").waitFor(); assert.equal(await page.locator("#result-panel").getAttribute("aria-busy"), "false"); await axe(page); await context.close(); await browser.close();
 });
 
-test("@claim:browser-cli-parity browser and CLI agree on dated, undated, invalid, stale, and active usage", async () => {
+test("@claim:browser-cli-parity browser and CLI agree on dated, undated, invalid, malformed, stale, and active usage", async () => {
   const browser = await chromium.launch(); const page = await browser.newPage(); await page.goto(`${base}/demo/`, { waitUntil: "networkidle" });
-  const cases = [[`{"count":0,"window_days":30,"as_of":"${today}"}`, "Removal candidate"], ["{\"count\":0,\"window_days\":30}", "Review evidence"], ["{\"count\":0,\"window_days\":30,\"as_of\":\"bad\"}", "Review evidence"], ["{\"count\":0,\"window_days\":30,\"as_of\":\"2000-01-01\"}", "Review evidence"], [`{"count":2,"window_days":30,"as_of":"${today}"}`, "Keep"]];
-  for (const [usage, expected] of cases) { await page.locator("#evaluation-json").fill(usage); await page.getByRole("button", { name: /classify sample flag/i }).click(); await page.getByRole("heading", { name: expected }).waitFor(); }
-  const directory = await mkdtemp(resolve(tmpdir(), "flag-parity-")); const flags = `${directory}/flags.json`; const usage = `${directory}/usage.json`; await writeFile(flags, '{"flags":[{"key":"checkout-v2","enabled":false,"status":"completed"}]}'); await writeFile(usage, `{ "as_of":"${today}", "window_days":30, "evaluations":{"checkout-v2":0}}`);
-  const output = execFileSync("cargo", ["run", "--quiet", "--", "--flags", flags, "--evaluations", usage, "--repo", directory, "--json"], { encoding: "utf8" }); assert.equal(JSON.parse(output).flags[0].classification, "remove"); await browser.close();
+  const cases = [
+    ["dated-date", `{ "count": 0, "window_days": 30, "as_of": "${today}" }`, "Removal candidate"],
+    ["dated-timestamp", `{ "count": 0, "window_days": 30, "as_of": "${today}T12:30:00.25+02:30" }`, "Removal candidate"],
+    ["undated", '{ "count": 0, "window_days": 30 }', "Review evidence"],
+    ["invalid", '{ "count": 0, "window_days": 30, "as_of": "bad" }', "Review evidence"],
+    ["malformed-suffix", `{ "count": 0, "window_days": 30, "as_of": "${today}garbageT00:00:00Z" }`, "Review evidence"],
+    ["stale", '{ "count": 0, "window_days": 30, "as_of": "2000-01-01" }', "Review evidence"],
+    ["active", `{ "count": 2, "window_days": 30, "as_of": "${today}" }`, "Keep"],
+  ];
+  const directory = await mkdtemp(resolve(tmpdir(), "flag-parity-")); const flags = `${directory}/flags.json`; const usagePath = `${directory}/usage.json`; await writeFile(flags, '{"flags":[{"key":"checkout-v2","enabled":false,"status":"completed"}]}');
+  for (const [name, usage, expected] of cases) {
+    const parsedUsage = JSON.parse(usage); await writeFile(usagePath, JSON.stringify({ as_of: parsedUsage.as_of, window_days: parsedUsage.window_days, evaluations: { "checkout-v2": parsedUsage.count } }));
+    const output = execFileSync("cargo", ["run", "--quiet", "--", "--flags", flags, "--evaluations", usagePath, "--repo", directory, "--json"], { encoding: "utf8" }); const cliFlag = JSON.parse(output).flags[0];
+    await page.locator("#evaluation-json").fill(usage); await page.getByRole("button", { name: /classify sample flag/i }).click(); assert.equal(await page.locator("#result-panel").getAttribute("aria-busy"), "true", name); await page.waitForFunction(() => document.querySelector("#result-panel")?.getAttribute("aria-busy") === "false"); await page.getByRole("heading", { name: expected }).waitFor();
+    const browserReasons = await page.locator("#demo-result h3:first-of-type + ul li").allTextContents();
+    assert.equal(cliFlag.classification, expected === "Removal candidate" ? "remove" : expected === "Keep" ? "keep" : "review", name); assert.deepEqual(browserReasons, cliFlag.reasons, name);
+  }
+  await browser.close();
 });

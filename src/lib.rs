@@ -459,29 +459,103 @@ fn classify(
 }
 
 /// A zero count is only removal evidence when it has a real, recent end date.
-/// Accept a plain ISO date or an RFC 3339 timestamp; comparison is deliberately
-/// UTC-only so the CLI stays deterministic across local time zones.
+/// Accept a complete ISO calendar date or RFC 3339 timestamp; comparison is
+/// deliberately UTC-only so the CLI stays deterministic across local time zones.
 fn is_recent_observation(value: &str) -> bool {
-    let Some(days) = iso_date_days(value) else {
+    let Some(days) = observation_utc_days(value) else {
         return false;
     };
     let today = unix_days_now();
     days <= today + 1 && days >= today - 90
 }
 
-fn iso_date_days(value: &str) -> Option<i64> {
-    let date = value.get(..10)?;
+/// Parses exactly one of:
+///
+/// - `YYYY-MM-DD`
+/// - `YYYY-MM-DDTHH:MM:SS(.fraction)?Z`
+/// - `YYYY-MM-DDTHH:MM:SS(.fraction)?+HH:MM` (or a negative offset)
+///
+/// It deliberately consumes the full input. Looking only at a date prefix made
+/// values such as `2026-08-28garbageT00:00:00Z` look valid removal evidence.
+fn observation_utc_days(value: &str) -> Option<i64> {
+    let (year, month, day) = parse_calendar_date(value.get(..10)?)?;
+    let local_days = days_from_civil(year, month, day);
+    if value.len() == 10 {
+        return Some(local_days);
+    }
+
+    let bytes = value.as_bytes();
+    if bytes.len() < 20 || bytes[10] != b'T' || bytes[13] != b':' || bytes[16] != b':' {
+        return None;
+    }
+    let hour = parse_ascii_number(bytes.get(11..13)?)?;
+    let minute = parse_ascii_number(bytes.get(14..16)?)?;
+    let second = parse_ascii_number(bytes.get(17..19)?)?;
+    if hour > 23 || minute > 59 || second > 60 {
+        return None;
+    }
+
+    let mut timezone_at = 19;
+    if bytes.get(timezone_at) == Some(&b'.') {
+        timezone_at += 1;
+        let fraction_start = timezone_at;
+        while bytes
+            .get(timezone_at)
+            .is_some_and(|byte| byte.is_ascii_digit())
+        {
+            timezone_at += 1;
+        }
+        if timezone_at == fraction_start {
+            return None;
+        }
+    }
+
+    let offset_seconds = match bytes.get(timezone_at)? {
+        b'Z' if timezone_at + 1 == bytes.len() => 0_i64,
+        sign @ (b'+' | b'-')
+            if timezone_at + 6 == bytes.len() && bytes.get(timezone_at + 3) == Some(&b':') =>
+        {
+            let offset_hours = parse_ascii_number(bytes.get(timezone_at + 1..timezone_at + 3)?)?;
+            let offset_minutes = parse_ascii_number(bytes.get(timezone_at + 4..timezone_at + 6)?)?;
+            if offset_hours > 23 || offset_minutes > 59 {
+                return None;
+            }
+            let offset = i64::from(offset_hours * 3_600 + offset_minutes * 60);
+            if *sign == b'+' {
+                offset
+            } else {
+                -offset
+            }
+        }
+        _ => return None,
+    };
+
+    let local_seconds =
+        local_days * 86_400 + i64::from(hour) * 3_600 + i64::from(minute) * 60 + i64::from(second);
+    Some((local_seconds - offset_seconds).div_euclid(86_400))
+}
+
+fn parse_calendar_date(date: &str) -> Option<(i64, u32, u32)> {
     let bytes = date.as_bytes();
     if bytes.len() != 10 || bytes[4] != b'-' || bytes[7] != b'-' {
         return None;
     }
-    let year = date.get(..4)?.parse::<i64>().ok()?;
-    let month = date.get(5..7)?.parse::<u32>().ok()?;
-    let day = date.get(8..10)?.parse::<u32>().ok()?;
+    let year = i64::from(parse_ascii_number(bytes.get(..4)?)?);
+    let month = parse_ascii_number(bytes.get(5..7)?)?;
+    let day = parse_ascii_number(bytes.get(8..10)?)?;
     if !(1..=12).contains(&month) || day == 0 || day > days_in_month(year, month) {
         return None;
     }
-    Some(days_from_civil(year, month, day))
+    Some((year, month, day))
+}
+
+fn parse_ascii_number(bytes: &[u8]) -> Option<u32> {
+    if bytes.is_empty() || !bytes.iter().all(u8::is_ascii_digit) {
+        return None;
+    }
+    bytes.iter().try_fold(0_u32, |value, byte| {
+        value.checked_mul(10)?.checked_add(u32::from(byte - b'0'))
+    })
 }
 
 fn days_in_month(year: i64, month: u32) -> u32 {
@@ -946,20 +1020,42 @@ mod tests {
     }
 
     #[test]
-    fn dated_evidence_rejects_missing_invalid_and_stale_dates() {
+    fn dated_evidence_rejects_missing_invalid_stale_and_malformed_dates() {
         let flag = ProviderFlag {
             key: "old".into(),
             name: None,
             enabled: Some(false),
             status: Some("completed".into()),
         };
-        for as_of in [None, Some("not-a-date".into()), Some("2000-01-01".into())] {
+        for as_of in [
+            None,
+            Some("not-a-date".into()),
+            Some("2000-01-01".into()),
+            Some(format!("{}garbageT00:00:00Z", today_utc_date())),
+        ] {
             let evidence = EvaluationEvidence {
                 count: 0,
                 window_days: Some(30),
                 as_of,
             };
             assert_eq!(classify(&flag, Some(&evidence)).0, Classification::Review);
+        }
+    }
+
+    #[test]
+    fn observation_dates_require_a_complete_strict_value() {
+        let today = today_utc_date();
+        assert!(is_recent_observation(&today));
+        assert!(is_recent_observation(&format!("{today}T00:00:00Z")));
+        assert!(is_recent_observation(&format!("{today}T12:30:00.25+02:30")));
+        for invalid in [
+            format!("{today}garbageT00:00:00Z"),
+            format!("{today}T00:00:00Zextra"),
+            format!("{today}T24:00:00Z"),
+            format!("{today}T00:00:00+02"),
+            format!("{today}T00:00:00."),
+        ] {
+            assert!(!is_recent_observation(&invalid), "{invalid}");
         }
     }
 

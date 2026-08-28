@@ -28,7 +28,7 @@ test("@claim:privacy-site local assets, storage, and network policy match the pr
 });
 
 test("@claim:decision-rule browser code requires a recent valid observation date for zero usage", () => {
-  assert.match(script, /ageDays >= -1 && ageDays <= 90/); assert.match(script, /complete && count === 0 && recentDate/); assert.match(script, /valid observation end date from the last 90 days/);
+  assert.match(script, /observationUtcDays/); assert.match(script, /complete && count === 0 && recentDate/); assert.match(script, /valid observation end date from the last 90 days/);
 });
 
 test("@claim:accessibility-routing every route focuses and announces its destination", () => {

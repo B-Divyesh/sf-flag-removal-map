@@ -1,1 +1,1 @@
-Review completed feature flags with dated local evidence before removal.
+Review completed feature flags before removal with dated local evidence.

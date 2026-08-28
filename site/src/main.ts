@@ -21,6 +21,48 @@ tests/checkout.test.ts: seedFlag("checkout-v2")`,
 
 const names: Record<Classification, string> = { keep: "Keep", remove: "Removal candidate", review: "Review evidence" };
 
+function daysInMonth(year: number, month: number): number {
+  if ([1, 3, 5, 7, 8, 10, 12].includes(month)) return 31;
+  if ([4, 6, 9, 11].includes(month)) return 30;
+  if (month === 2) return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 29 : 28;
+  return 0;
+}
+
+function daysFromCivil(year: number, month: number, day: number): number {
+  const adjustedYear = year - (month <= 2 ? 1 : 0);
+  const era = Math.floor(adjustedYear / 400);
+  const yearOfEra = adjustedYear - era * 400;
+  const dayOfYear = Math.floor((153 * (month + (month > 2 ? -3 : 9)) + 2) / 5) + day - 1;
+  return era * 146097 + yearOfEra * 365 + Math.floor(yearOfEra / 4) - Math.floor(yearOfEra / 100) + dayOfYear - 719468;
+}
+
+/** Match the CLI: accept only a complete ISO date or complete RFC 3339 timestamp. */
+function observationUtcDays(value: string): number | undefined {
+  const match = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|[+-]\d{2}:\d{2}))?$/.exec(value);
+  if (!match) return undefined;
+  const [year, month, day] = match.slice(1, 4).map(Number);
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) return undefined;
+  const localDays = daysFromCivil(year, month, day);
+  if (!match[4]) return localDays;
+  const [hour, minute, second] = match.slice(4, 7).map(Number);
+  if (hour > 23 || minute > 59 || second > 60) return undefined;
+  const zone = match[7]!;
+  let offset = 0;
+  if (zone !== "Z") {
+    const offsetHour = Number(zone.slice(1, 3)); const offsetMinute = Number(zone.slice(4, 6));
+    if (offsetHour > 23 || offsetMinute > 59) return undefined;
+    offset = (offsetHour * 3600 + offsetMinute * 60) * (zone[0] === "+" ? 1 : -1);
+  }
+  return Math.floor((localDays * 86400 + hour * 3600 + minute * 60 + second - offset) / 86400);
+}
+
+function isRecentObservation(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const days = observationUtcDays(value);
+  const todayDays = Math.floor(Date.now() / 86_400_000);
+  return days !== undefined && days >= todayDays - 90 && days <= todayDays + 1;
+}
+
 function focusRoute(): void {
   const h1 = document.querySelector<HTMLElement>("h1");
   const notice = document.querySelector<HTMLElement>("#route-announcement");
@@ -78,17 +120,15 @@ function classify(): { classification: Classification; key: string; reasons: str
   const count = usage.count; const days = usage.window_days; const asOf = usage.as_of ?? usage.asOf;
   if (typeof count !== "number" || count < 0 || !Number.isInteger(count)) throw new Error("Evaluation count must be a non-negative integer.");
   if (typeof days !== "number" || days <= 0 || !Number.isInteger(days)) throw new Error("Usage report days must be a positive number.");
-  const observedAt = typeof asOf === "string" ? Date.parse(asOf) : Number.NaN;
-  const ageDays = (Date.now() - observedAt) / 86_400_000;
-  const recentDate = Number.isFinite(observedAt) && ageDays >= -1 && ageDays <= 90;
+  const recentDate = isRecentObservation(asOf);
   const status = typeof provider.status === "string" ? provider.status.toLowerCase() : "";
   const active = provider.enabled === true || ["active", "live", "running", "enabled"].includes(status);
   const complete = provider.enabled === false || ["completed", "complete", "archived", "disabled", "off", "removed"].includes(status);
   const references = source.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.includes(key));
-  if (active) return { classification: "keep", key, references, reasons: ["The provider marks this flag enabled."] };
-  if (count > 0) return { classification: "keep", key, references, reasons: [`${count} evaluations appear in the dated usage report.`] };
-  if (complete && count === 0 && recentDate) return { classification: "remove", key, references, reasons: ["The provider marks this flag completed.", `The dated ${days}-day usage report ending ${asOf} records zero evaluations; that supports review but does not prove safety.`] };
-  const reasons = [complete ? "The provider marks this flag completed, but removal evidence is incomplete." : "The provider status is missing or unclear."];
+  if (active) return { classification: "keep", key, references, reasons: ["Provider export marks the flag active or enabled."] };
+  if (count > 0) return { classification: "keep", key, references, reasons: ["Evaluation activity exists in the supplied observation window."] };
+  if (complete && count === 0 && recentDate) return { classification: "remove", key, references, reasons: ["Provider export marks the flag completed, archived, or disabled.", `The dated ${days}-day observation window ending ${asOf} reports zero evaluations; this supports review but does not prove safety.`] };
+  const reasons = [provider.enabled === undefined && !status ? "Provider state is missing or unrecognized." : complete ? "Provider state suggests completion, but bounded zero-evaluation evidence is missing." : "Provider state does not explicitly establish completion."];
   if (count === 0 && !recentDate) reasons.push("Zero evaluations need a valid observation end date from the last 90 days.");
   else reasons.push("Missing or unclear evidence requires human review.");
   return { classification: "review", key, references, reasons };
