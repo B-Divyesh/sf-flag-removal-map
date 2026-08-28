@@ -1,0 +1,208 @@
+{
+  "base": "https://flag-removal-map.sociobot.in",
+  "build": "e945f50",
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "title": "Flag Removal Map — review completed flags",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://flag-removal-map.sociobot.in/",
+      "socialFields": 8,
+      "appleTouch": true,
+      "build": "e945f50",
+      "width": 390,
+      "viewport": 390,
+      "local": [],
+      "session": [],
+      "indexedDb": [],
+      "requests": 5,
+      "errors": [],
+      "axe": {
+        "light": 0,
+        "dark": 0
+      }
+    },
+    {
+      "path": "/demo/",
+      "status": 200,
+      "title": "Demo — Flag Removal Map",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://flag-removal-map.sociobot.in/demo/",
+      "socialFields": 8,
+      "appleTouch": true,
+      "build": "e945f50",
+      "width": 390,
+      "viewport": 390,
+      "local": [],
+      "session": [
+        [
+          "demo:flag-removal-map",
+          "active"
+        ]
+      ],
+      "indexedDb": [],
+      "requests": 3,
+      "errors": [],
+      "axe": {
+        "light": 0,
+        "dark": 0
+      }
+    },
+    {
+      "path": "/privacy/",
+      "status": 200,
+      "title": "Privacy — Flag Removal Map",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://flag-removal-map.sociobot.in/privacy/",
+      "socialFields": 8,
+      "appleTouch": true,
+      "build": "e945f50",
+      "width": 390,
+      "viewport": 390,
+      "local": [],
+      "session": [],
+      "indexedDb": [],
+      "requests": 3,
+      "errors": [],
+      "axe": {
+        "light": 0,
+        "dark": 0
+      }
+    },
+    {
+      "path": "/terms/",
+      "status": 200,
+      "title": "Terms — Flag Removal Map",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://flag-removal-map.sociobot.in/terms/",
+      "socialFields": 8,
+      "appleTouch": true,
+      "build": "e945f50",
+      "width": 390,
+      "viewport": 390,
+      "local": [],
+      "session": [],
+      "indexedDb": [],
+      "requests": 3,
+      "errors": [],
+      "axe": {
+        "light": 0,
+        "dark": 0
+      }
+    },
+    {
+      "path": "/not-a-real-page-polish-7",
+      "status": 404,
+      "title": "Page not found — Flag Removal Map",
+      "lang": "en",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://flag-removal-map.sociobot.in/404",
+      "socialFields": 8,
+      "appleTouch": true,
+      "build": "e945f50",
+      "width": 390,
+      "viewport": 390,
+      "local": [],
+      "session": [],
+      "indexedDb": [],
+      "requests": 3,
+      "errors": [],
+      "axe": {
+        "light": 0,
+        "dark": 0
+      }
+    }
+  ],
+  "demo": {
+    "landingClick": {
+      "scrollY": 0,
+      "width": 390,
+      "result": {
+        "x": 45,
+        "y": 641.890625,
+        "width": 300,
+        "height": 35.6875,
+        "top": 641.890625,
+        "right": 345,
+        "bottom": 677.578125,
+        "left": 45
+      },
+      "edit": {
+        "x": 45,
+        "y": 692.75,
+        "width": 183.640625,
+        "height": 44,
+        "top": 692.75,
+        "right": 228.640625,
+        "bottom": 736.75,
+        "left": 45
+      },
+      "form": {
+        "x": 21,
+        "y": 1607.484375,
+        "width": 348,
+        "height": 865.375,
+        "top": 1607.484375,
+        "right": 369,
+        "bottom": 2472.859375,
+        "left": 21
+      }
+    },
+    "queryEntry": {
+      "scrollY": 0,
+      "resultTop": 641.890625,
+      "editTop": 692.75,
+      "references": 3
+    },
+    "storageBefore": {
+      "local": [
+        [
+          "real:sentinel",
+          "local"
+        ]
+      ],
+      "session": [
+        [
+          "demo:flag-removal-map",
+          "active"
+        ],
+        [
+          "real:sentinel",
+          "session"
+        ]
+      ]
+    },
+    "storageAfter": {
+      "local": [
+        [
+          "real:sentinel",
+          "local"
+        ]
+      ],
+      "session": [
+        [
+          "real:sentinel",
+          "session"
+        ]
+      ],
+      "focus": "H1"
+    },
+    "classifyAndResetRequests": 0,
+    "errors": []
+  },
+  "offline": {
+    "reload": "Removal candidate",
+    "url": "https://flag-removal-map.sociobot.in/demo/"
+  },
+  "errors": []
+}

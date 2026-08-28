@@ -1,35 +1,45 @@
-# Flag Removal Map — review 7 handoff
+# Flag Removal Map — polish 7 handoff
 
-- Work order: `flag-removal-map-review-7`
-- Candidate reviewed: `579c054bcea1b3308e92720047b8e95974332379`
+- Work order: `flag-removal-map-polish-7`
+- Reviewed candidate: `579c054bcea1b3308e92720047b8e95974332379`
+- Review source: `44144300fecdbb53aa8ab2d92cc58e5a81d7ac67`
+- Deployed repair: `e945f50e7e9824dde34575a610f8524bee542513`
 - Live URL: <https://flag-removal-map.sociobot.in/>
-- Result: **FAIL — one blocking mobile-demo finding.**
+- Azure Static Web Apps deployment: `7479e899-7089-414f-a38f-82a0874c8893`
+- Result: **PASS — no known finding remains.**
 
-## What was done
+## What changed
 
-- Wrote `.factory/review-7.md` after a cold live review at 390 × 844 and 1440 × 900.
-- Audited every landing and README sentence, all registered/public claims, demo isolation and offline behavior, CLI demo behavior, routes, links, metadata, focus, accessibility, visual identity, and every earlier review/polish finding.
-- Did not modify product code.
+- Put the completed demo result before the editable inputs on phones. “Removal candidate” and **Edit sample inputs** now appear in the initial 390 × 844 viewport.
+- Extended `@claim:demo-one-click` to exercise both the landing action and `/?demo=1`, require `scrollY = 0`, check first-screen coordinates, check all mobile grid bounds, and retain the three-reference assertion.
+- Constrained demo grid children and long references to the mobile content width. Bumped the offline cache to `v4` so existing visitors receive the repair.
+- Updated the claim registry, demo contract, copy audit, and the verb-first 71-character catalog description.
 
-## Blocking result
+The established first-screen wording, isolated demo marker/reset/discard flow, CLI demo, claims, route titles/metadata, designed HTTP 404, focus handling, shared legal shell, and topographic identity remain intact.
 
-`F-7-1` reopens review-1 `F2` on mobile. After **Try it with sample data**, the completed `Removal candidate` heading begins at y=`1507.27` while the initial 390 × 844 viewport ends at y=`844`. The user sees the editable inputs before the completed result. Put the result summary above the inputs on mobile and assert initial viewport visibility in `@claim:demo-one-click` for both the landing click and `/?demo=1`.
+## Clean-clone verification
 
-## Verification
-
-Clean clone: `/tmp/flag-removal-map-review7-lpxy1d/repo`.
+Clean clone: `/tmp/flag-removal-map-polish7-verified.VumMqO/repo` at `e945f50e7e9824dde34575a610f8524bee542513`.
 
 ```sh
 npm ci
 npm run test:claims
 npm test
 npm run build
+cargo package --allow-dirty
 ```
 
-All commands passed. The claim runner executed all 24 registry commands. The full suite passed 9 Rust unit tests, 10 CLI integration tests, 1 doctest, 7 site tests, registry integrity, 4 shell/package tests, and 8 Playwright/Axe tests. The build emitted `target/release/flag-removal-map` and `dist/site/`.
+All 24 registered claim commands passed. The full suite passed 9 Rust unit tests, 10 CLI integration tests, 1 doctest, 7 site tests, 1 registry-integrity test, 4 shell/package tests, and 8 Playwright/Axe tests. TypeScript, rustfmt, and Clippy passed. The package verified at 118.3 KiB uncompressed and 30.6 KiB compressed. The build emitted `target/release/flag-removal-map` and `dist/site/`; initial JavaScript is 3.42 kB gzip and CSS is 4.17 kB gzip.
 
-Live checks confirmed one-click route entry, populated sample, Reset, Start for real, preserved non-demo storage sentinels, zero post-load classify/reset requests, offline reload, designed HTTP 404, route metadata, link health, H1 focus on Back, and zero Axe WCAG A/AA violations. The CLI demo ran from an empty temporary directory and left it unchanged.
+## Live verification
 
-## Known gap and next step
+- [`live-audit.json`](evidence/polish-7-live/audit/live-audit.json): build `e945f50` on home, demo, privacy, terms, and the designed 404; exact route titles/canonicals/social metadata; one H1 and main; no console errors; no cross-origin requests, cookies, local storage, or IndexedDB; only the documented demo session marker.
+- [`demo-mobile-first-screen.png`](evidence/polish-7-live/demo-mobile-first-screen.png): cold 390 × 844 landing click. Result y=`641.89`; edit action y=`692.75`; form starts y=`1607.48`; grid, result, and form right edge=`369`; `scrollY=0`.
+- The live audit repeated direct `/?demo=1`, Reset demo, Start for real, sentinel preservation, H1 focus, zero classify/reset requests, and service-worker-controlled offline reload.
+- Axe reported 0 WCAG A/AA violations on all five checked route states in both light and dark treatments.
+- [`home verify`](evidence/polish-7-live/home/verify.json) and [`demo verify`](evidence/polish-7-live/demo/verify.json): HTTPS 200, title/lang/main/alt/control checks, and zero console errors.
+- [`lighthouse-mobile.json`](evidence/polish-7-live/lighthouse-mobile.json): Performance 100, Accessibility 100, Best Practices 100, SEO 100; LCP 1.584 s, CLS 0, TBT 13.5 ms.
 
-Only F-7-1 remains. Reorder the mobile demo so the completed result is visible without scrolling, extend the claim test with a 390 × 844 viewport intersection assertion, deploy, and rerun review 7.
+## Known gaps and next steps
+
+None. `.factory/brief.json` is absent from the repository, as it was in review 7; scope was reconciled against the full review/polish history, design thesis, README, and working CLI.

@@ -1,0 +1,63 @@
+{
+  "url": "http://127.0.0.1:5173/demo/",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "scrollY": 0,
+  "scrollWidth": 390,
+  "boxes": {
+    ".demo-grid": {
+      "x": 20,
+      "y": 585.296875,
+      "width": 350,
+      "height": 1888.5625,
+      "top": 585.296875,
+      "right": 370,
+      "bottom": 2473.859375,
+      "left": 20
+    },
+    ".result-panel": {
+      "x": 21,
+      "y": 586.296875,
+      "width": 348,
+      "height": 1021.1875,
+      "top": 586.296875,
+      "right": 369,
+      "bottom": 1607.484375,
+      "left": 21
+    },
+    ".field-notebook": {
+      "x": 21,
+      "y": 1607.484375,
+      "width": 348,
+      "height": 865.375,
+      "top": 1607.484375,
+      "right": 369,
+      "bottom": 2472.859375,
+      "left": 21
+    },
+    ".result-status": {
+      "x": 45,
+      "y": 641.890625,
+      "width": 300,
+      "height": 35.6875,
+      "top": 641.890625,
+      "right": 345,
+      "bottom": 677.578125,
+      "left": 45
+    },
+    ".edit-sample-link": {
+      "x": 45,
+      "y": 692.75,
+      "width": 183.640625,
+      "height": 44,
+      "top": 692.75,
+      "right": 228.640625,
+      "bottom": 736.75,
+      "left": 45
+    }
+  },
+  "references": 3,
+  "errors": []
+}

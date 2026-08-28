@@ -1,6 +1,6 @@
-# Copy audit — polish 5
+# Copy audit — polish 7
 
-Audited 2026-08-28 against the final landing source and cold mobile render. The first screen says the job, audience, and first action in one breath. No sentence exceeds 22 words and no banned marketing term appears.
+Audited 2026-08-28 against the final landing source, demo, README, and cold 390 × 844 render. The first screen says the job, audience, and first action in one breath. No sentence exceeds 22 words and no banned marketing term appears.
 
 | Words | Landing sentence or meaningful alt text | Result |
 | ---: | --- | --- |
@@ -29,7 +29,9 @@ Audited 2026-08-28 against the final landing source and cold mobile render. The 
 | 3 | You are offline. | Pass |
 | 7 | This page and the sample still work. | Pass |
 
-The current catalog line is 9 words, verb-first, and 67 characters: “Review completed feature flags using local evidence before removal.”
+The mobile demo action “Edit sample inputs” is 3 words and names its destination. It follows the visible result summary.
+
+The current catalog line is 10 words, verb-first, and 71 characters including the period: “Review completed feature flags with provider, usage, and code evidence.”
 
 | Concept | One term |
 | --- | --- |
