@@ -1,4 +1,37 @@
-# Flag Removal Map — polish 7 handoff
+# Flag Removal Map — review 8 handoff
+
+- Work order: `flag-removal-map-review-8`
+- Reviewed candidate: `68d123348e839d6bf17c85d7010733c68114bc5f`
+- Scope: independent read-only review; product code was not changed.
+- Result: **PASS — no finding remains.**
+
+## What was done
+
+- Audited the deployed site in fresh 390 × 844 and 1440 × 900 browser contexts before scrolling.
+- Re-ran the one-click demo, isolation/reset/discard, offline, privacy, route, metadata, link, mobile, keyboard, and live Axe checks.
+- Created a clean clone at `/tmp/flag-removal-map-review8.459mlh/repo`; `npm ci`, all 24 registered claim commands through `npm run test:claims`, `npm test`, `npm run build`, and `cargo package --allow-dirty` passed.
+- Ran `flag-removal-map demo` from a separate temporary caller directory and confirmed its generated plan was under its own temporary sample directory.
+- Recorded the complete result in `.factory/review-8.md`.
+
+## How to verify
+
+```sh
+npm ci
+npm run test:claims
+npm test
+npm run build
+cargo package --allow-dirty
+```
+
+Open `https://flag-removal-map.sociobot.in/` at 390 px and select **Try it with sample data**. The completed removal candidate appears in the first demo viewport.
+
+## Known gaps and next steps
+
+None found in this review.
+
+---
+
+# Prior polish 7 handoff
 
 - Work order: `flag-removal-map-polish-7`
 - Reviewed candidate: `579c054bcea1b3308e92720047b8e95974332379`
